@@ -171,7 +171,9 @@ const Navbar = () => {
                     className="bg-base-200 text-base-content px-4 py-3 border-none focus:outline-none min-w-[120px] appearance-none pl-4 pr-8 cursor-pointer" // Changed bg-gray-800 to bg-base-200, text-gray-300 to text-base-content
                   >
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
                     ))}
                   </select>
                   {/* Custom Arrow SVG */}
@@ -189,11 +191,9 @@ const Navbar = () => {
                     </svg>
                   </div>
                 </div>
-
                 {/* Separator Bar */}
                 <div className="self-stretch w-px bg-base-300"></div>{" "}
                 {/* Changed bg-gray-700 to bg-base-300 */}
-
                 <input
                   type="text"
                   placeholder="Search here"
@@ -226,7 +226,6 @@ const Navbar = () => {
               <ComputerDesktopIcon className="h-6 w-6" />
               <span className="text-xs mt-1">Build PC</span>
             </Link>
-
             {/* Mini-Cart Dropdown Container - Added relative */}
             <div
               className="relative group" // Added relative for dropdown positioning
@@ -249,68 +248,69 @@ const Navbar = () => {
               </Link>
 
               {/* Mini-Cart Dropdown - Conditionally Rendered */}
-              {isMiniCartOpen && cart.length > 0 && ( // Show only if open and cart has items
-                <div
-                  className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300" // Used bg-base-100 for dropdown
-                  onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
-                  onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
-                >
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">Your Cart</h3>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {/* Scrollable if many items */}
-                      {cart.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center space-x-3 p-2 bg-base-200 rounded"
-                        >
-                          {/* Used bg-base-200 for item background */}
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-12 h-12 object-contain bg-base-300 p-1 rounded"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate text-sm">
-                              {item.title}
-                            </p>
-                            <p className="text-primary font-bold text-sm">
-                              DZD {item.price}
-                            </p>
-                            <p className="text-base-content/70 text-xs">
-                              Qty: {item.quantity}
-                            </p>{" "}
-                            {/* Changed text-gray-500 to text-base-content/70 */}
+              {isMiniCartOpen &&
+                cart.length > 0 && ( // Show only if open and cart has items
+                  <div
+                    className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300" // Used bg-base-100 for dropdown
+                    onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
+                    onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
+                  >
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg mb-2">Your Cart</h3>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {/* Scrollable if many items */}
+                        {cart.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center space-x-3 p-2 bg-inherit rounded"
+                          >
+                            {/* Used bg-base-200 for item background */}
+                            <img
+                              src={item.image} // <-- Ensure it uses item.image
+                              alt={item.title}
+                              className="w-12 h-12 object-contain bg-inherit p-1 rounded" // Added bg-base-200 and padding
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate text-sm">
+                                {item.title}
+                              </p>
+                              <p className="text-primary font-bold text-sm">
+                                DZD {item.price}
+                              </p>
+                              <p className="text-base-content/70 text-xs">
+                                Qty: {item.quantity}
+                              </p>{" "}
+                              {/* Changed text-gray-500 to text-base-content/70 */}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="divider my-2 bg-base-300"></div>{" "}
-                    {/* Changed divider color */}
-                    <div className="flex justify-between items-center font-bold">
-                      <span>Total:</span>
-                      <span>DZD {subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Link
-                        to="/cart"
-                        className="btn btn-primary flex-1"
-                        onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
-                      >
-                        View Cart
-                      </Link>
-                      {/* Updated Checkout button to link to /checkout */}
-                      <Link
-                        to="/checkout"
-                        className="btn btn-secondary flex-1"
-                        onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
-                      >
-                        Checkout
-                      </Link>
+                        ))}
+                      </div>
+                      <div className="divider my-2"></div>{" "}
+                      {/* Changed divider color */}
+                      <div className="flex justify-between items-center font-bold">
+                        <span>Total:</span>
+                        <span>DZD {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <Link
+                          to="/cart"
+                          className="btn btn-primary btn-outline flex-1"
+                          onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
+                        >
+                          View Cart
+                        </Link>
+                        {/* Updated Checkout button to link to /checkout */}
+                        <Link
+                          to="/checkout"
+                          className="btn btn-secondary flex-1"
+                          onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
+                        >
+                          Checkout
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Empty Cart Message - Shown when dropdown is open but cart is empty */}
               {isMiniCartOpen && cart.length === 0 && (
@@ -370,7 +370,6 @@ const Navbar = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </form>
-
               <ThemeSwitcher /> {/* Add the ThemeSwitcher component */}
               <Link
                 to="/build-pc"

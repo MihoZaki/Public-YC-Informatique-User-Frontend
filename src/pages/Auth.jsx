@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import heroBackgroundImage from "../assets/heroBackgroundImage.png";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
@@ -55,8 +56,16 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
-      <div className="card bg-base-100 w-full max-w-md shadow-xl">
+    <div
+      className="relative w-full px-4 py-8 min-h-screen flex items-center justify-center"
+      style={{
+        backgroundImage: `url(${heroBackgroundImage})`, // Use the imported variable
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute w-full min-h-screen bg-base-300/50" />
+      <div className="card bg-base-100 w-full max-w-md shadow-xl border border-base-200">
         <div className="card-body">
           <h2 className="card-title text-2xl mb-4">
             {isLogin ? "Log In" : "Sign Up"}
@@ -117,8 +126,7 @@ const AuthPage = () => {
 
           <div className="text-center">
             <p className="text-sm">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-              {" "}
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="link link-primary"

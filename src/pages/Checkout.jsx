@@ -69,7 +69,7 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl mb-4">Your cart is empty.</p>
           <button
@@ -84,12 +84,12 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Order Summary */}
-        <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+        <div className="bg-base-100 p-6 rounded-lg shadow-lg border border-base-200">
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {cart.map((item) => (
@@ -100,7 +100,7 @@ const Checkout = () => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-16 h-16 object-contain bg-base-200 p-2 rounded"
+                  className="w-16 h-16 object-contain bg-inherit p-2 rounded"
                 />
                 <div className="flex-1">
                   <h3 className="font-semibold">{item.title}</h3>
@@ -122,13 +122,13 @@ const Checkout = () => {
             {/* Tax and Shipping would go here if applicable */}
             <div className="flex justify-between font-bold text-lg">
               <span>Total:</span>
-              <span>DZD {total.toFixed(2)}</span>
+              <span className="text-primary">DZD {total.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
         {/* Checkout Form */}
-        <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+        <div className="bg-base-100 p-6 rounded-lg shadow-lg border border-base-200">
           <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
 
           <form onSubmit={handleSubmit}>
@@ -238,7 +238,9 @@ const Checkout = () => {
                   errors.deliveryService ? "select-error" : ""
                 }`}
               >
-                <option value="" disabled>Select a service</option>
+                <option value="" disabled>
+                  Select a service
+                </option>
                 <option value="service-a">Delivery Service A</option>
                 <option value="service-b">Delivery Service B</option>
                 <option value="service-c">Delivery Service C</option>
@@ -308,14 +310,10 @@ const Checkout = () => {
                 className="textarea textarea-bordered w-full"
                 placeholder="e.g., Delivery instructions, apartment number..."
                 rows="2"
-              >
-              </textarea>
+              ></textarea>
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-            >
+            <button type="submit" className="btn btn-primary w-full">
               Place Order
             </button>
           </form>

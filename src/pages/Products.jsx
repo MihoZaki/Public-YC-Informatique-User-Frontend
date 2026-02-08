@@ -49,22 +49,22 @@ const Products = () => {
     // Apply filters
     if (filters.category) {
       filtered = filtered.filter((p) =>
-        p.category.toLowerCase().includes(filters.category.toLowerCase())
+        p.category.toLowerCase().includes(filters.category.toLowerCase()),
       );
     }
     if (filters.minPrice) {
-      filtered = filtered.filter((p) =>
-        p.price >= parseFloat(filters.minPrice)
+      filtered = filtered.filter(
+        (p) => p.price >= parseFloat(filters.minPrice),
       );
     }
     if (filters.maxPrice) {
-      filtered = filtered.filter((p) =>
-        p.price <= parseFloat(filters.maxPrice)
+      filtered = filtered.filter(
+        (p) => p.price <= parseFloat(filters.maxPrice),
       );
     }
     if (filters.brand) {
       filtered = filtered.filter((p) =>
-        p.brand.toLowerCase().includes(filters.brand.toLowerCase())
+        p.brand.toLowerCase().includes(filters.brand.toLowerCase()),
       );
     }
 
@@ -87,7 +87,7 @@ const Products = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-300 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8 ">Products</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -102,69 +102,60 @@ const Products = () => {
 
         {/* Product Grid */}
         <div className="lg:col-span-3">
-          {loading
-            ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="card bg-gray-800 shadow-xl">
-                    <div className="skeleton h-48 w-full bg-gray-700"></div>
-                    <div className="card-body">
-                      <div className="skeleton h-4 w-3/4 mb-2 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-4 w-full mb-2 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-4 w-1/2 mb-4 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-8 w-full bg-gray-700"></div>
-                    </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="card bg-inherit shadow-xl">
+                  <div className="skeleton h-48 w-full bg-gray-700/50"></div>
+                  <div className="card-body">
+                    <div className="skeleton h-4 w-3/4 mb-2 bg-gray-700/50"></div>
+                    <div className="skeleton h-4 w-full mb-2 bg-gray-700/50"></div>
+                    <div className="skeleton h-4 w-1/2 mb-4 bg-gray-700/50"></div>
+                    <div className="skeleton h-8 w-full bg-gray-700/50"></div>
                   </div>
-                ))}
-              </div>
-            )
-            : error
-            ? ( // Show error state if error occurred
-              <div className="text-center py-12">
-                <p className="text-xl mb-4 text-error">
-                  Error loading products: {error}
-                </p>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => window.location.reload()} // Simple retry mechanism
-                >
-                  Retry
-                </button>
-              </div>
-            )
-            : (
-              <>
-                <p className="mb-4 ">
-                  Showing {filteredProducts.length} of {products.length}{" "}
-                  products
-                </p>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            // Show error state if error occurred
+            <div className="text-center py-12">
+              <p className="text-xl mb-4 text-error">
+                Error loading products: {error}
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => window.location.reload()} // Simple retry mechanism
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* <p className="mb-4 ">
+                Showing {filteredProducts.length} of {products.length} products
+              </p> */}
 
-                {filteredProducts.length === 0
-                  ? (
-                    <div className="text-center py-12">
-                      <p className="text-xl mb-4 ">
-                        No products found matching your criteria.
-                      </p>
-                      <button
-                        className="btn btn-secondary bg-gray-700 hover:bg-gray-600 "
-                        onClick={() => handleFilterChange("reset")}
-                      >
-                        Clear Filters
-                      </button>
-                    </div>
-                  )
-                  : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  )}
-              </>
-            )}
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-xl mb-4 ">
+                    No products found matching your criteria.
+                  </p>
+                  <button
+                    className="btn btn-secondary bg-gray-700 hover:bg-gray-600 "
+                    onClick={() => handleFilterChange("reset")}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

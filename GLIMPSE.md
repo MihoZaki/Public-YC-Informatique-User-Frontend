@@ -1,5 +1,6 @@
 Directory Structure:
 └── README.md
+└── devbox.json
 └── eslint.config.js
 └── index.html
 └── package-lock.json
@@ -40,257 +41,1101 @@ Directory Structure:
 
 File Contents:
 
-File: src/components/CartModel.jsx
+File: README.md
 ================================================
-import React from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+File: src/components/ProductCard.jsx
+================================================
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  CheckCircleIcon,
+  EyeIcon,
+  ShoppingCartIcon,
+  StarIcon,
+} from "@heroicons/react/24/solid";
 import { useCart } from "../contexts/CartContext";
 
-const CartModal = ({ isOpen, onClose }) => {
-  const { cart, subtotal, tax, total, updateQuantity, removeFromCart } =
-    useCart();
+const ProductCard = ({ product }) => {
+  const navigation = useNavigate();
+  const savedTheme = localStorage.getItem("theme");
+  const { addToCart } = useCart();
+  const [isAdded, setIsAdded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleQuickAdd = async () => {
+    if (isAdding) return;
+
+    setIsAdding(true);
+    setIsAdded(false);
+
+    try {
+      await addToCart({ ...product, quantity: 1 });
+      setIsAdded(true);
+      toast.success(`"${product.title}" added to cart!`);
+      setTimeout(() => {
+        setIsAdded(false);
+      }, 1500);
+    } catch (error) {
+      console.error("Failed to add item to cart:", error);
+      toast.error("Failed to add item to cart. Please try again.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleCardPress = () => {
+    navigation(`/product/${product.id}`);
+  };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-75" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-base-100 p-6 text-left align-middle shadow-xl transition-all">
-                <div className="flex items-center justify-between">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6"
-                  >
-                    Shopping Cart ({cart.length})
-                  </Dialog.Title>
-                  <button
-                    type="button"
-                    className="rounded-md p-2 hover:bg-base-200"
-                    onClick={onClose}
-                  >
-                    <XMarkIcon className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="mt-4 max-h-96 overflow-y-auto">
-                  {cart.length === 0
-                    ? (
-                      <p className="text-center py-8 text-gray-500">
-                        Your cart is empty
-                      </p>
-                    )
-                    : (
-                      <div className="space-y-4">
-                        {cart.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center space-x-4 p-3 border border-base-200 rounded-lg"
-                          >
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-16 h-16 object-contain"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">
-                                {item.title}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                ${item.price}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <button
-                                className="btn btn-xs"
-                                onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    Math.max(1, item.quantity - 1),
-                                  )}
-                              >
-                                -
-                              </button>
-                              <span className="text-sm">{item.quantity}</span>
-                              <button
-                                className="btn btn-xs"
-                                onClick={() =>
-                                  updateQuantity(item.id, item.quantity + 1)}
-                              >
-                                +
-                              </button>
-                            </div>
-                            <button
-                              className="btn btn-error btn-xs"
-                              onClick={() => removeFromCart(item.id)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                </div>
-
-                {cart.length > 0 && (
-                  <div className="mt-6 space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tax (8%):</span>
-                      <span>${tax.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span>${total.toFixed(2)}</span>
-                    </div>
-                    <button className="btn btn-primary w-full mt-4">
-                      Checkout
-                    </button>
-                  </div>
-                )}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+    <div
+      className={`card bg-base-100 shadow-sm hover:shadow-2xl transition-shadow duration-300 relative border rounded-lg border-base-200`}
+    >
+      <figure
+        className="h-48 overflow-hidden cursor-pointer"
+        onClick={handleCardPress}
+      >
+        <img
+          src={product.image}
+          alt={product.title}
+          className="w-full h-full object-fill rounded-t-lg hover:scale-105 transition-transform duration-300"
+        />
+      </figure>
+      <div className="card-body p-4">
+        <h2 className="card-title text-sm line-clamp-2">{product.title}</h2>
+        <div className="flex items-center gap-1">
+          <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
+          <span className="text-xs">4.5</span>
+          <span className="text-xs text-gray-500">(128)</span>
         </div>
-      </Dialog>
-    </Transition>
+        <p className="text-sm text-gray-600 line-clamp-2">
+          {product.description}
+        </p>
+        <div className="mt-2 flex flex-row items-baseline justify-between">
+          {true ? (
+            <div className="flex flex-row items-center gap-1">
+              <p className="text-sm font-medium text-gray-400 line-through mb-2">
+                DA {product.price}
+              </p>
+              <p className="text-lg font-bold text-base-content mb-2">
+                DA {(product.price - 10).toFixed(2)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-lg font-bold text-base-content mb-2">
+              DA {product.price}
+            </p>
+          )}
+          <button
+            className={`btn btn-sm ${isAdded ? "btn-success " : "btn-primary"} z-50`}
+            onClick={handleQuickAdd}
+            title={isAdded ? "Added to Cart!" : "Add to Cart"}
+            disabled={isAdded || isAdding}
+          >
+            {isAdding ? (
+              <span className="loading loading-spinner loading-xs"></span>
+            ) : isAdded ? (
+              <>
+                <CheckCircleIcon className="h-4 w-4 mr-1 text-base-content" />
+                <span className="text-base-content">Added!</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCartIcon className="h-4 w-4 text-white" />
+                <span className="text-white">Add to card</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default CartModal;
+export default ProductCard;
 
 
-File: src/components/Footer.jsx
+File: src/pages/Account.jsx
 ================================================
-// src/components/Footer.jsx - Simplified Version
+// src/pages/Account.jsx
 import React from "react";
-// Remove ExternalLinkIcon if it's causing issues
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Import useAuth
+
+const Account = () => {
+  const { user, logout } = useAuth(); // Get user and logout function
+
+  // If no user is logged in, maybe redirect or show a message
+  // For now, let's just render nothing if not logged in, assuming the router handles protection
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl mb-4">You are not logged in.</p>
+          <Link to="/auth" className="btn btn-primary">
+            Go to Login/Signup
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Mock recent orders (you might fetch this based on user ID later)
+  const recentOrders = [
+    {
+      id: "#12345",
+      date: "2024-05-15",
+      status: "Delivered",
+      total: "DZD 249.99",
+    },
+    { id: "#12344", date: "2024-05-10", status: "Shipped", total: "DZD 89.50" },
+    {
+      id: "#12343",
+      date: "2024-05-05",
+      status: "Processing",
+      total: "DZD 1,200.00",
+    },
+  ];
+
+  return (
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+      <h1 className="text-3xl font-bold mb-8">My Account</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Sidebar Navigation */}
+        <div className="lg:col-span-1">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
+            <div className="card-body">
+              <h2 className="card-title text-lg mb-4">Account Menu</h2>
+              <ul className="menu bg-base-100 w-full rounded-box">
+                <li>
+                  <Link to="/account" className="active">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/account/orders">My Orders</Link>
+                </li>
+                <li>
+                  <Link to="/account/settings">Account Settings</Link>
+                </li>
+                <li>
+                  <button onClick={logout} className="btn w-full text-left">
+                    Log Out
+                  </button>
+                </li>{" "}
+                {/* Logout button */}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="lg:col-span-3">
+          {/* Welcome Section */}
+          <div className="card bg-base-100 shadow-lg mb-6 border border-base-200">
+            <div className="card-body">
+              <h2 className="card-title">Welcome, {user.name}!</h2>
+              <p className="text-gray-600">Member since {user.joinDate}</p>
+              <div className="mt-4">
+                <p>
+                  <strong>Email:</strong> {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Orders */}
+          <div className="card bg-base-100 shadow-lg mb-6 border border-base-200">
+            <div className="card-body">
+              <h3 className="card-title text-lg">Recent Orders</h3>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="font-bold">Order #</th>
+                      <th className="font-bold">Date</th>
+                      <th className="font-bold">Status</th>
+                      <th className="font-bold">Total</th>
+                      <th className="font-bold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => (
+                      <tr key={order.id}>
+                        <td>{order.id}</td>
+                        <td>{order.date}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              order.status === "Delivered"
+                                ? "badge-success"
+                                : order.status === "Shipped"
+                                  ? "badge-info"
+                                  : "badge-warning"
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                        </td>
+                        <td>{order.total}</td>
+                        <td>
+                          <Link
+                            to={`/account/order/${order.id}`}
+                            className="btn btn-xs"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="card-actions justify-end mt-4">
+                <Link to="/account/orders" className="btn btn-outline">
+                  View All Orders
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Account;
+
+
+File: src/index.css
+================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+File: index.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="src/assets/logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YC Informatique</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+File: src/main.jsx
+================================================
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+
+File: postcss.config.js
+================================================
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+File: package.json
+================================================
+{
+  "name": "frontend-user",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
+    "axios": "^1.13.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.13.0",
+    "sonner": "^2.0.7",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "daisyui": "^4",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "vite": "^7.2.4"
+  }
+}
+
+
+File: src/components/NavBar.jsx
+================================================
+// src/components/Navbar.jsx
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  ComputerDesktopIcon,
+  CubeIcon, // Added
   EnvelopeIcon,
   MapPinIcon,
   PhoneIcon,
-} from "@heroicons/react/24/outline"; // Using MapPinIcon instead of LocationMarkerIcon
-import { Link } from "react-router-dom";
+  ShoppingCartIcon,
+  UserCircleIcon, // Added
+} from "@heroicons/react/24/outline";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext"; // Import useAuth
+import ThemeSwitcher from "./ThemeSwitcher"; // Import the new component
 
-const Footer = () => {
+// Import the logo image
+import logoImage from "../assets/logo.jpg"; // Adjust the filename if needed (e.g., logo.svg, logo.jpg)
+
+const Navbar = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMiniCartOpen, setIsMiniCartOpen] = useState(false); // State for mini-cart
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { cart, subtotal } = useCart(); // Get cart items and subtotal
+  const { user, isLoading } = useAuth(); // Get user and loading state from auth context
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm("");
+    }
+  };
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const isBuildPCPage = location.pathname === "/build-pc";
+
+  // State for the category dropdown
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+
+  const categories = [
+    "All Categories", // This serves as a placeholder too
+    "CPUs",
+    "GPUs",
+    "RAM",
+    "Storage",
+    "Motherboards",
+    "Cases",
+    "PSUs",
+    "Peripherals",
+    // These are the mockup category types
+  ];
+
+  const handleCategoryChange = (e) => {
+    const newCategory = e.target.value;
+    setSelectedCategory(newCategory);
+    // Optionally, trigger a filter action here if needed globally
+    // e.g., setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
+  };
+  let phoneNumber = "+079999999";
+  let address = "TAHER, Jijel, Algeria";
+  let currency = "DZD";
+  // Determine the account link destination based on auth state
+  let accountLinkDestination = "/auth"; // Default to auth page
+  if (isLoading) {
+    accountLinkDestination = "#"; // Or maybe don't render the link at all temporarily
+  } else if (user) {
+    accountLinkDestination = "/account";
+  } else {
+    accountLinkDestination = "/auth";
+  }
+
+  // Improved hover handlers
+  const handleCartHover = () => {
+    setIsMiniCartOpen(true);
+  };
+
+  const handleCartLeave = () => {
+    // Use a timeout to allow for brief movement to the dropdown
+    setTimeout(() => {
+      if (!document.querySelector(".mini-cart-dropdown:hover")) {
+        setIsMiniCartOpen(false);
+      }
+    }, 100); // 100ms delay before closing
+  };
+
+  const handleDropdownHover = () => {
+    setIsMiniCartOpen(true); // Keep it open if hovering dropdown
+  };
+
+  const handleDropdownLeave = () => {
+    setIsMiniCartOpen(false); // Close when leaving dropdown
+  };
+
   return (
-    <footer className="footer bg-base-200 text-base-content p-10">
-      <div>
-        <span className="footer-title">Services</span>
-        <Link to="/build-pc" className="link link-hover">Build Your PC</Link>
-        <Link to="/products" className="link link-hover">Browse Products</Link>
-        <Link to="/cart" className="link link-hover">Shopping Cart</Link>
+    <React.Fragment>
+      {/* Top Info Bar — Desktop Only - Using daisyUI semantic classes */}
+      <div className="bg-base-300 text-base-content text-sm py-1 px-4 flex justify-between items-center hidden md:flex">
+        {/* Changed bg-gray-900 to bg-base-300 */}
+        <div className="flex items-center space-x-6">
+          <a
+            href="tel:+021-95-51-84"
+            className="flex items-center hover:text-primary transition"
+          >
+            {/* Changed hover:text-white to hover:text-primary */}
+            <PhoneIcon className="h-4 w-4 mr-1" />
+            {phoneNumber}
+          </a>
+          <a
+            href="mailto:email@email.com"
+            className="flex items-center hover:text-primary transition"
+          >
+            {/* Changed hover:text-white to hover:text-primary */}
+            <EnvelopeIcon className="h-4 w-4 mr-1" />
+            email@email.com
+          </a>
+          <span className="flex items-center">
+            <MapPinIcon className="h-4 w-4 mr-1" />
+            {address}
+          </span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="font-medium">{currency}</span>
+          {/* Dynamic Link */}
+          <Link
+            to={accountLinkDestination}
+            className="hover:text-primary transition"
+          >
+            {/* Changed hover:text-white to hover:text-primary */}
+            {user ? `Hello, ${user.name}` : "My Account"}{" "}
+            {/* Show username if logged in */}
+          </Link>
+        </div>
       </div>
-      <div>
-        <span className="footer-title">Company</span>
-        <Link to="/about" className="link link-hover">About Us</Link>
-        <Link to="/contact" className="link link-hover">Contact</Link>
-      </div>
-      <div>
-        <span className="footer-title">Legal</span>
-        <a href="#" className="link link-hover">Terms of Use</a>
-        <a href="#" className="link link-hover">Privacy Policy</a>
-        <a href="#" className="link link-hover">Cookie Policy</a>
-      </div>
-      <div>
-        <span className="footer-title">Contact</span>
-        <div className="flex items-center gap-2">
-          <EnvelopeIcon className="h-5 w-5 text-gray-400" />
 
-          <span>info@alm-informatique.com</span>
+      {/* Main Navbar - Using daisyUI semantic classes */}
+      <nav className="bg-base-100 border-b border-base-300 py-3 px-4">
+        {/* Changed bg-gray-900 to bg-base-100, border-gray-800 to border-base-300 */}
+        <div className="container mx-auto flex items-center justify-between">
+          {/* Logo - Left */}
+          <Link to="/" className="flex items-center space-x-2">
+            {/* Added space-x-2 for gap between logo and text */}
+            {/* Imported Logo Image - Rounded */}
+            <img
+              src={logoImage} // Use the imported variable
+              alt="ALM Informatique Logo"
+              className="h-8 w-8 rounded-full" // Added rounded-full for rounded corners
+            />
+            <span className="text-xl md:text-2xl font-bold text-base-content">
+              {/* Changed text-white to text-base-content */}
+              YC<span className="text-primary">.</span> Informatique
+            </span>
+          </Link>
+
+          {/* Centered Search Bar (Desktop) - Updated to use native select dropdown with arrow and separator */}
+          <div className="hidden md:flex justify-center flex-1 max-w-2xl">
+            <form onSubmit={handleSearch} className="w-full max-w-lg">
+              <div className="flex rounded-lg overflow-hidden bg-base-200">
+                {/* Changed bg-gray-800 to bg-base-200 */}
+                {/* Category Select with Custom Arrow */}
+                <div className="relative">
+                  {/* Wrapper for arrow positioning */}
+                  <select
+                    value={selectedCategory}
+                    onChange={handleCategoryChange}
+                    className="bg-base-200 text-base-content px-4 py-3 border-none focus:outline-none min-w-[120px] appearance-none pl-4 pr-8 cursor-pointer" // Changed bg-gray-800 to bg-base-200, text-gray-300 to text-base-content
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom Arrow SVG */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-base-content">
+                    {/* Changed text-gray-300 to text-base-content */}
+                    <svg
+                      width="12px"
+                      height="12px"
+                      className="h-3 w-3 fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 2048 2048"
+                    >
+                      <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
+                    </svg>
+                  </div>
+                </div>
+                {/* Separator Bar */}
+                <div className="self-stretch w-px bg-base-300"></div>{" "}
+                {/* Changed bg-gray-700 to bg-base-300 */}
+                <input
+                  type="text"
+                  placeholder="Search here"
+                  className="flex-1 px-4 py-3 bg-base-200 text-base-content focus:outline-none focus:ring-2 focus:ring-primary" // Changed bg-gray-800 to bg-base-200, text-white to text-base-content, focus:ring-red-500 to focus:ring-primary
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-focus text-primary-content px-5 py-3 font-medium transition" // Changed bg-red-500 to bg-primary, hover:bg-red-600 to hover:bg-primary-focus, text-white to text-primary-content
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Right Icons - Desktop - Added Theme Switcher */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Reduced space-x from 6 to 4 */}
+            <ThemeSwitcher /> {/* Add the ThemeSwitcher component */}
+            <Link
+              to="/build-pc"
+              className={`flex flex-col items-center ${
+                isBuildPCPage
+                  ? "text-primary"
+                  : "text-base-content hover:text-primary"
+              } transition`} // Changed text-red-500 to text-primary, text-gray-300 to text-base-content, hover:text-white to hover:text-primary
+            >
+              <ComputerDesktopIcon className="h-6 w-6" />
+              <span className="text-xs mt-1">Build PC</span>
+            </Link>
+            {/* Mini-Cart Dropdown Container - Added relative */}
+            <div
+              className="relative group" // Added relative for dropdown positioning
+              onMouseEnter={handleCartHover} // Hover handler for the container
+              onMouseLeave={handleCartLeave} // Leave handler for the container
+            >
+              {/* Cart Link with Badge - Removed hover triggers from here */}
+              <Link
+                to="/cart"
+                className="flex flex-col items-center text-base-content hover:text-primary transition relative" // Changed text-gray-300 to text-base-content, hover:text-white to hover:text-primary
+              >
+                <ShoppingCartIcon className="h-6 w-6" />
+                <span className="text-xs mt-1">Your Cart</span>
+                {cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-content text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {/* Changed bg-red-500 to bg-primary, text-white to text-primary-content */}
+                    {cart.length}
+                  </span>
+                )}
+              </Link>
+
+              {/* Mini-Cart Dropdown - Conditionally Rendered */}
+              {isMiniCartOpen &&
+                cart.length > 0 && ( // Show only if open and cart has items
+                  <div
+                    className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300" // Used bg-base-100 for dropdown
+                    onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
+                    onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
+                  >
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg mb-2">Your Cart</h3>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {/* Scrollable if many items */}
+                        {cart.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center space-x-3 p-2 bg-inherit rounded"
+                          >
+                            {/* Used bg-base-200 for item background */}
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-12 h-12 object-contain bg-inherit p-1 rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate text-sm">
+                                {item.title}
+                              </p>
+                              <p className="text-primary font-bold text-sm">
+                                DZD {item.price}
+                              </p>
+                              <p className="text-base-content/70 text-xs">
+                                Qty: {item.quantity}
+                              </p>{" "}
+                              {/* Changed text-gray-500 to text-base-content/70 */}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="divider my-2"></div>{" "}
+                      {/* Changed divider color */}
+                      <div className="flex justify-between items-center font-bold">
+                        <span>Total:</span>
+                        <span>DZD {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <Link
+                          to="/cart"
+                          className="btn btn-primary btn-outline flex-1"
+                          onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
+                        >
+                          View Cart
+                        </Link>
+                        {/* Updated Checkout button to link to /checkout */}
+                        <Link
+                          to="/checkout"
+                          className="btn btn-secondary flex-1"
+                          onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
+                        >
+                          Checkout
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Empty Cart Message - Shown when dropdown is open but cart is empty */}
+              {isMiniCartOpen && cart.length === 0 && (
+                <div
+                  className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300"
+                  onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
+                  onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
+                >
+                  <div className="p-4 text-center">
+                    <p>Your cart is empty.</p>
+                    <Link
+                      to="/products"
+                      className="btn btn-primary mt-2"
+                      onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
+                    >
+                      Browse Products
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden text-base-content hover:text-primary" // Changed text-gray-300 to text-base-content, hover:text-white to hover:text-primary
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          <PhoneIcon className="h-5 w-5 text-gray-400" />
-          <span>+079999999</span>
-        </div>
-        <div className="flex items-start gap-2">
-          {/* Changed LocationMarkerIcon to MapPinIcon */}
-          <MapPinIcon className="h-5 w-5 text-gray-400 mt-1" />
-          <span>TAHER, Jijel, Algeria</span>
-        </div>
-      </div>
-    </footer>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-base-200 py-4 px-4 border-t border-base-300">
+            {/* Changed bg-gray-800 to bg-base-200, border-gray-700 to border-base-300 */}
+            <div className="space-y-3">
+              <form onSubmit={handleSearch} className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full px-4 py-3 bg-base-300 text-base-content rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-primary" // Changed bg-gray-700 to bg-base-300, text-white to text-base-content, focus:ring-red-500 to focus:ring-primary
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </form>
+              <ThemeSwitcher /> {/* Add the ThemeSwitcher component */}
+              <Link
+                to="/build-pc"
+                className={`flex items-center px-4 py-2 rounded-lg ${
+                  isBuildPCPage
+                    ? "bg-primary text-primary-content"
+                    : "text-base-content hover:bg-base-300"
+                }`} // Changed bg-red-500 to bg-primary, text-white to text-primary-content, text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <ComputerDesktopIcon className="h-5 w-5 mr-3" />
+                Build Your PC
+              </Link>
+              <Link
+                to="/cart"
+                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <ShoppingCartIcon className="h-5 w-5 mr-3" />
+                Your Cart ({cart.length})
+              </Link>
+              {/* Dynamic Link for Mobile */}
+              <Link
+                to={accountLinkDestination}
+                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <UserCircleIcon className="h-5 w-5 mr-3" />
+                {user ? `Account (${user.name})` : "Log In / Sign Up"}
+              </Link>
+              <Link
+                to="/products"
+                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <CubeIcon className="h-5 w-5 mr-3" />
+                All Products
+              </Link>
+            </div>
+          </div>
+        )}
+      </nav>
+    </React.Fragment>
   );
 };
 
-export default Footer;
+export default Navbar;
+
+
+File: src/pages/Cart.jsx
+================================================
+// src/pages/Cart.jsx
+import React from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
+import { TrashIcon } from "@heroicons/react/24/solid";
+
+const Cart = () => {
+  const { cart, subtotal, total, updateQuantity, removeFromCart, clearCart } =
+    useCart(); // Removed tax
+
+  return (
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+
+      {cart.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-xl mb-4">Your cart is empty</p>
+          <Link to="/products" className="btn btn-primary">
+            Continue Shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="space-y-4">
+              {cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="card bg-base-100 shadow-lg border border-base-200"
+                >
+                  <div className="card-body">
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-20 h-20 object-contain bg-inherit p-2 rounded"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{item.title}</h3>
+                        <p className="text-primary font-bold">
+                          DZD {item.price}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          className="btn btn-xs"
+                          onClick={() =>
+                            updateQuantity(
+                              item.id,
+                              Math.max(1, item.quantity - 1),
+                            )
+                          }
+                        >
+                          -
+                        </button>
+                        <span className="mx-2">{item.quantity}</span>
+                        <button
+                          className="btn btn-xs"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        className="btn btn-error btn-xs"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <TrashIcon className="h-4 w-4 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <button className="btn btn-error btn-sm" onClick={clearCart}>
+                Clear Cart
+              </button>
+            </div>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="card bg-base-100 shadow-lg sticky top-24 border border-base-200">
+              <div className="card-body">
+                <h3 className="card-title">Order Summary</h3>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>DZD {subtotal.toFixed(2)}</span>
+                  </div>
+                  {/* Removed Tax calculation and display */}
+                  <div className="divider"></div>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>DZD {total.toFixed(2)}</span>{" "}
+                    {/* Total now equals Subtotal */}
+                  </div>
+                </div>
+
+                {/* Updated button to link to /checkout */}
+                <Link to="/checkout" className="btn btn-primary w-full mt-4">
+                  Proceed to Checkout
+                </Link>
+
+                <Link
+                  to="/products"
+                  className="btn btn-secondary btn-outline w-full mt-2"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Cart;
 
 
 File: src/pages/BuildPC.jsx
 ================================================
 // src/pages/BuildPC.jsx
-import React, { useState } from 'react';
-import { useStore } from '../stores/useStore';
+import React, { useState } from "react";
+import { useStore } from "../stores/useStore";
 
 const BuildPC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const { buildPcComponents, setPcComponent } = useStore();
 
   const steps = [
-    { id: 'cpu', name: 'CPU', title: 'Select CPU' },
-    { id: 'gpu', name: 'GPU', title: 'Select GPU' },
-    { id: 'ram', name: 'RAM', title: 'Select RAM' },
-    { id: 'motherboard', name: 'Motherboard', title: 'Select Motherboard' },
-    { id: 'storage', name: 'Storage', title: 'Select Storage' },
-    { id: 'psu', name: 'PSU', title: 'Select Power Supply' },
-    { id: 'case', name: 'Case', title: 'Select Case' }
+    { id: "cpu", name: "CPU", title: "Select CPU" },
+    { id: "gpu", name: "GPU", title: "Select GPU" },
+    { id: "ram", name: "RAM", title: "Select RAM" },
+    { id: "motherboard", name: "Motherboard", title: "Select Motherboard" },
+    { id: "storage", name: "Storage", title: "Select Storage" },
+    { id: "psu", name: "PSU", title: "Select Power Supply" },
+    { id: "case", name: "Case", title: "Select Case" },
   ];
 
   const mockComponents = {
     cpu: [
-      { id: 1, name: 'Intel Core i9-13900K', price: 589, socket: 'LGA1700' },
-      { id: 2, name: 'AMD Ryzen 9 7950X', price: 699, socket: 'AM5' },
-      { id: 3, name: 'Intel Core i7-13700K', price: 419, socket: 'LGA1700' }
+      { id: 1, name: "Intel Core i9-13900K", price: 589, socket: "LGA1700" },
+      { id: 2, name: "AMD Ryzen 9 7950X", price: 699, socket: "AM5" },
+      { id: 3, name: "Intel Core i7-13700K", price: 419, socket: "LGA1700" },
     ],
     gpu: [
-      { id: 1, name: 'RTX 4090', price: 1599, vram: '24GB' },
-      { id: 2, name: 'RTX 4080', price: 1199, vram: '16GB' },
-      { id: 3, name: 'RX 7900 XTX', price: 999, vram: '24GB' }
-    ]
+      { id: 1, name: "RTX 4090", price: 1599, vram: "24GB" },
+      { id: 2, name: "RTX 4080", price: 1199, vram: "16GB" },
+      { id: 3, name: "RX 7900 XTX", price: 999, vram: "24GB" },
+    ],
+    ram: [
+      {
+        id: 1,
+        name: "Corsair Vengeance RGB 32GB",
+        price: 120,
+        size: "32GB",
+        speed: "3200MHz",
+      },
+      {
+        id: 2,
+        name: "G.Skill Trident Z5 16GB",
+        price: 80,
+        size: "16GB",
+        speed: "3600MHz",
+      },
+      {
+        id: 3,
+        name: "Crucial Ballistix 32GB",
+        price: 110,
+        size: "32GB",
+        speed: "3000MHz",
+      },
+    ],
+    motherboard: [
+      {
+        id: 1,
+        name: "ASUS ROG Strix Z790-E",
+        price: 350,
+        socket: "LGA1700",
+        formFactor: "ATX",
+      },
+      {
+        id: 2,
+        name: "MSI MAG B650 Tomahawk",
+        price: 180,
+        socket: "AM5",
+        formFactor: "ATX",
+      },
+      {
+        id: 3,
+        name: "Gigabyte B660M DS3H",
+        price: 100,
+        socket: "LGA1700",
+        formFactor: "Micro-ATX",
+      },
+    ],
+    storage: [
+      {
+        id: 1,
+        name: "Samsung 980 Pro 1TB",
+        price: 100,
+        capacity: "1TB",
+        type: "SSD",
+      },
+      {
+        id: 2,
+        name: "WD Black SN850 2TB",
+        price: 200,
+        capacity: "2TB",
+        type: "SSD",
+      },
+      {
+        id: 3,
+        name: "Seagate Barracuda 4TB",
+        price: 80,
+        capacity: "4TB",
+        type: "HDD",
+      },
+    ],
+    psu: [
+      {
+        id: 1,
+        name: "Corsair RM850x",
+        price: 150,
+        wattage: "850W",
+        efficiency: "80+ Gold",
+      },
+      {
+        id: 2,
+        name: "EVGA SuperNOVA 750W",
+        price: 120,
+        wattage: "750W",
+        efficiency: "80+ Bronze",
+      },
+      {
+        id: 3,
+        name: "Seasonic Focus GX-650",
+        price: 100,
+        wattage: "650W",
+        efficiency: "80+ Gold",
+      },
+    ],
+    case: [
+      {
+        id: 1,
+        name: "NZXT H510",
+        price: 70,
+        formFactor: "ATX",
+        color: "Black",
+      },
+      {
+        id: 2,
+        name: "Fractal Design Meshify C",
+        price: 90,
+        formFactor: "ATX",
+        color: "White",
+      },
+      {
+        id: 3,
+        name: "Corsair 4000D Airflow",
+        price: 100,
+        formFactor: "ATX",
+        color: "Black",
+      },
+    ],
   };
 
-  const selectedTotal = Object.values(buildPcComponents).reduce((sum, comp) => sum + (comp?.price || 0), 0);
+  const selectedTotal = Object.values(buildPcComponents).reduce(
+    (sum, comp) => sum + (comp?.price || 0),
+    0,
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Build Your PC</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Steps Navigation */}
         <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-lg">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
             <div className="card-body">
               <h3 className="font-bold text-lg mb-4">Build Progress</h3>
               <div className="steps steps-vertical">
                 {steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`step ${index <= currentStep ? 'step-primary' : ''} ${buildPcComponents[step.id] ? 'step-success' : ''}`}
+                    className={`step ${
+                      index <= currentStep ? "step-primary" : ""
+                    } ${buildPcComponents[step.id] ? "step-success" : ""}`}
                     onClick={() => setCurrentStep(index)}
                   >
                     {step.name}
@@ -303,28 +1148,49 @@ const BuildPC = () => {
 
         {/* Component Selection */}
         <div className="lg:col-span-2">
-          <div className="card bg-base-100 shadow-lg">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
             <div className="card-body">
-              <h2 className="card-title text-2xl mb-6">{steps[currentStep]?.title}</h2>
+              <h2 className="card-title text-2xl mb-6">
+                {steps[currentStep]?.title}
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {(mockComponents[steps[currentStep]?.id] || []).map(component => (
-                  <div
-                    key={component.id}
-                    className={`card bg-base-200 cursor-pointer ${buildPcComponents[steps[currentStep]?.id]?.id === component.id ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setPcComponent(steps[currentStep].id, component)}
-                  >
-                    <div className="card-body">
-                      <h3 className="card-title">{component.name}</h3>
-                      <p className="text-lg font-bold text-primary">${component.price}</p>
-                      <div className="text-sm opacity-75">
-                        {Object.entries(component).filter(([key]) => !['id', 'name', 'price'].includes(key)).map(([key, value]) => (
-                          <div key={key}>{key}: {value}</div>
-                        ))}
+                {(mockComponents[steps[currentStep]?.id] || []).map(
+                  (component) => (
+                    <div
+                      key={component.id}
+                      className={`card bg-base-200 cursor-pointer ${
+                        buildPcComponents[steps[currentStep]?.id]?.id ===
+                        component.id
+                          ? "ring-2 ring-primary"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        setPcComponent(steps[currentStep].id, component)
+                      }
+                    >
+                      <div className="card-body">
+                        <h3 className="card-title font-semibold">
+                          {component.name}
+                        </h3>
+                        <p className="text-lg font-bold text-primary">
+                          DZD {component.price}
+                        </p>
+                        <div className="text-sm opacity-75">
+                          {Object.entries(component)
+                            .filter(
+                              ([key]) => !["id", "name", "price"].includes(key),
+                            )
+                            .map(([key, value]) => (
+                              <div key={key}>
+                                {key}: {value}
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
 
               <div className="flex justify-between">
@@ -338,7 +1204,9 @@ const BuildPC = () => {
 
                 <button
                   className="btn btn-primary"
-                  onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                  onClick={() =>
+                    setCurrentStep(Math.min(steps.length - 1, currentStep + 1))
+                  }
                   disabled={!buildPcComponents[steps[currentStep]?.id]}
                 >
                   Next
@@ -348,21 +1216,25 @@ const BuildPC = () => {
           </div>
 
           {/* Summary */}
-          <div className="card bg-base-100 shadow-lg mt-6">
+          <div className="card bg-base-100 shadow-lg mt-6 border border-base-200">
             <div className="card-body">
               <h3 className="card-title">Current Build</h3>
               <div className="space-y-2">
-                {Object.entries(buildPcComponents).map(([category, component]) => (
-                  <div key={category} className="flex justify-between">
-                    <span>{category.toUpperCase()}:</span>
-                    <span>{component?.name}</span>
-                  </div>
-                ))}
+                {Object.entries(buildPcComponents).map(
+                  ([category, component]) => (
+                    <div key={category} className="flex justify-between">
+                      <span className="font-medium text-base-content">
+                        {category.toUpperCase()}:
+                      </span>
+                      <span className="text-sm">{component?.name}</span>
+                    </div>
+                  ),
+                )}
               </div>
               <div className="divider"></div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total:</span>
-                <span>DZD {selectedTotal}</span>
+                <span className="text-primary">DZD {selectedTotal}</span>
               </div>
             </div>
           </div>
@@ -417,295 +1289,829 @@ export const useCart = () => {
 };
 
 
-File: src/stores/useStore.jsx
+File: eslint.config.js
 ================================================
-import { create } from 'zustand';
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
 
-export const useStore = create((set) => ({
-  cart: [],
-  buildPcComponents: {},
-
-  // Cart actions
-  addToCart: (product) => set((state) => {
-    const existingItem = state.cart.find(item => item.id === product.id);
-    if (existingItem) {
-      return {
-        cart: state.cart.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      };
-    }
-    return { cart: [...state.cart, { ...product, quantity: 1 }] };
-  }),
-
-  removeFromCart: (productId) => set((state) => ({
-    cart: state.cart.filter(item => item.id !== productId)
-  })),
-
-  updateQuantity: (productId, quantity) => set((state) => ({
-    cart: state.cart.map(item =>
-      item.id === productId ? { ...item, quantity } : item
-    )
-  })),
-
-  clearCart: () => set({ cart: [] }),
-
-  // Build PC actions
-  setPcComponent: (category, component) => set((state) => ({
-    buildPcComponents: {
-      ...state.buildPcComponents,
-      [category]: component
-    }
-  }))
-}));
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
 
 
-File: src/components/ProductCard.jsx
+File: tailwind.config.js
 ================================================
-// src/components/ProductCard.jsx
-import React, { useState } from "react"; // Import useState
-import { Link } from "react-router-dom";
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: [
+      "night", // Dracula theme
+      "fantasy", // Light theme
+    ],
+  },
+};
+
+
+File: src/components/Footer.jsx
+================================================
+// src/components/Footer.jsx - Simplified Version
+import React from "react";
+// Remove ExternalLinkIcon if it's causing issues
 import {
-  CheckCircleIcon,
-  EyeIcon,
-  ShoppingCartIcon,
-  StarIcon,
-} from "@heroicons/react/24/solid"; // Import CheckCircleIcon
-import { useCart } from "../contexts/CartContext"; // Import useCart hook
+  EnvelopeIcon,
+  MapPinIcon,
+  PhoneIcon,
+} from "@heroicons/react/24/outline"; // Using MapPinIcon instead of LocationMarkerIcon
+import { Link } from "react-router-dom";
 
-const ProductCard = ({ product }) => {
-  const { addToCart } = useCart(); // Get the addToCart function
-  const [isAdded, setIsAdded] = useState(false); // State to track button state
-
-  const handleQuickAdd = () => {
-    addToCart({ ...product, quantity: 1 }); // Add the product with a default quantity of 1
-    setIsAdded(true); // Set the state to indicate the item was added
-
-    // Reset the state after 1.5 seconds
-    setTimeout(() => {
-      setIsAdded(false);
-    }, 1500);
-  };
-
+const Footer = () => {
   return (
-    <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300 relative">
-      <figure className="px-4 pt-4 h-48 overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.title}
-          className="w-full h-full object-contain rounded-lg"
-        />
-      </figure>
-      <div className="card-body p-4">
-        <h2 className="card-title text-sm line-clamp-2">{product.title}</h2>
-        <div className="flex items-center gap-1">
-          <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
-          <span className="text-xs">4.5</span>
-          <span className="text-xs text-gray-500">(128)</span>
+    <footer className="footer bg-base-200 text-base-content p-10">
+      <div>
+        <span className="footer-title font-bold">Services</span>
+        <Link to="/build-pc" className="link link-hover">
+          Build Your PC
+        </Link>
+        <Link to="/products" className="link link-hover">
+          Browse Products
+        </Link>
+        <Link to="/cart" className="link link-hover">
+          Shopping Cart
+        </Link>
+      </div>
+      <div>
+        <span className="footer-title font-bold">Company</span>
+        <Link to="/about" className="link link-hover">
+          About Us
+        </Link>
+        <Link to="/contact" className="link link-hover">
+          Contact
+        </Link>
+      </div>
+      <div>
+        <span className="footer-title font-bold">Legal</span>
+        <a href="#" className="link link-hover">
+          Terms of Use
+        </a>
+        <a href="#" className="link link-hover">
+          Privacy Policy
+        </a>
+        <a href="#" className="link link-hover">
+          Cookie Policy
+        </a>
+      </div>
+      <div>
+        <span className="footer-title font-bold">Contact</span>
+        <div className="flex items-center gap-2">
+          <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+
+          <span>info@YC-informatique.com</span>
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2">
-          {product.description}
-        </p>
-        {/* New structure for price and actions */}
-        <div className="mt-2">
-          <div className="text-xl font-bold text-base-content mb-2">
-            ${product.price}
-          </div>
-          <div className="card-actions justify-end">
-            <button
-              className={`btn btn-sm ${
-                isAdded ? "btn-success" : "btn-primary"
-              }`} // Conditional class based on isAdded state
-              onClick={handleQuickAdd} // Call the quick add function
-              title={isAdded ? "Added to Cart!" : "Add to Cart"} // Tooltip changes based on state
-              disabled={isAdded} // Optionally disable the button while showing success
-            >
-              {isAdded
-                ? ( // Conditional rendering based on isAdded state
-                  <>
-                    {/* Fragment to wrap multiple elements without adding a DOM node */}
-                    <CheckCircleIcon className="h-4 w-4 mr-1" />
-                    Added!
-                  </>
-                )
-                : (
-                  <ShoppingCartIcon className="h-4 w-4" /> // Original icon
-                )}
-            </button>
-            <Link
-              to={`/product/${product.id}`}
-              className="btn btn-primary btn-sm"
-            >
-              <EyeIcon className="h-4 w-4 mr-1" />
-              View Details
-            </Link>
-          </div>
+        <div className="flex items-center gap-2">
+          <PhoneIcon className="h-5 w-5 text-gray-400" />
+          <span>+079999999</span>
+        </div>
+        <div className="flex items-start gap-2">
+          {/* Changed LocationMarkerIcon to MapPinIcon */}
+          <MapPinIcon className="h-5 w-5 text-gray-400 mt-1" />
+          <span>TAHER, Jijel, Algeria</span>
         </div>
       </div>
-    </div>
+    </footer>
   );
 };
 
-export default ProductCard;
+export default Footer;
 
 
-File: src/pages/Products.jsx
+File: src/pages/Home.jsx
 ================================================
-// src/pages/Products.jsx
+// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import FilterPanel from "../components/FilterPanel";
-import { fetchProducts } from "../services/api"; // Import the new API function
+import { fetchCategories, fetchProducts } from "../services/api"; // Import the new API functions
+import { toast } from "sonner";
 
-const Products = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+// Import the hero background image
+import heroBackgroundImage from "../assets/heroBackgroundImage.png";
+import cpuImage from "../assets/categoryCpu.jpg";
+import gpuImage from "../assets/categoryGpu.jpg";
+import ramImage from "../assets/categoryRam.jpg";
+import storageImage from "../assets/categoryStorage.jpg";
+import motherboardImage from "../assets/categoryMotherboard.jpg";
+import caseImage from "../assets/categoryCase.jpg";
+import psuImage from "../assets/categoryPsu.jpg";
+import peripheralImage from "../assets/categoryPeripherals.jpg";
+
+const Home = () => {
+  const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    category: searchParams.get("category") || "",
-    minPrice: "",
-    maxPrice: "",
-    brand: "",
-  });
-
-  // Categories will now be fetched by FilterPanel
-  // const categories = ['CPUs', 'GPUs', 'RAM', 'Storage', 'Motherboards', 'Cases', 'PSUs', 'Peripherals'];
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const data = await fetchProducts(); // Fetch from real API
-        setProducts(data);
-        setFilteredProducts(data);
+        setError(null);
+        setLoading(true);
+        const products = await fetchProducts();
+        setFeaturedProducts(products.slice(0, 8)); // Get first 8 products
       } catch (error) {
         console.error("Error fetching products:", error);
-        // Optionally, set an error state
+        setError(
+          error.message || "Failed to load products, Please try again later.",
+        );
+        toast.error("Failed to load products, Please try again later.");
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop loading indicator regardless of success/error
       }
     };
     loadProducts();
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
-  useEffect(() => {
-    let filtered = products;
-
-    // Apply filters
-    if (filters.category) {
-      filtered = filtered.filter((p) =>
-        p.category.toLowerCase().includes(filters.category.toLowerCase())
-      );
-    }
-    if (filters.minPrice) {
-      filtered = filtered.filter((p) =>
-        p.price >= parseFloat(filters.minPrice)
-      );
-    }
-    if (filters.maxPrice) {
-      filtered = filtered.filter((p) =>
-        p.price <= parseFloat(filters.maxPrice)
-      );
-    }
-    if (filters.brand) {
-      filtered = filtered.filter((p) =>
-        p.brand.toLowerCase().includes(filters.brand.toLowerCase())
-      );
-    }
-
-    setFilteredProducts(filtered);
-  }, [filters, products]);
-
-  const handleFilterChange = (key, value) => {
-    if (key === "reset") {
-      setFilters({ category: "", minPrice: "", maxPrice: "", brand: "" });
-      setSearchParams({});
-    } else {
-      setFilters((prev) => ({ ...prev, [key]: value }));
-      if (value) {
-        setSearchParams({ [key]: value });
-      } else {
-        searchParams.delete(key);
-        setSearchParams(searchParams);
-      }
-    }
-  };
+  const hardcodedCategories = [
+    // [0] Big card: CPUs (spans 2 cols × 2 rows)
+    {
+      id: "cpus",
+      name: "CPUs",
+      filter: "CPU",
+      image: cpuImage,
+      isBig: true,
+    },
+    // [1] Top-right
+    {
+      id: "gpus",
+      name: "GPUs",
+      filter: "GPU",
+      image: gpuImage,
+      isBig: false,
+    },
+    // [2] Below GPUs
+    {
+      id: "ram",
+      name: "RAM",
+      filter: "RAM",
+      image: ramImage,
+      isBig: false,
+    },
+    // [3] Below RAM
+    {
+      id: "storage",
+      name: "Storage",
+      filter: "Storage",
+      image: storageImage,
+      isBig: false,
+    },
+    // [4] Right of big card (row 1, col 3)
+    {
+      id: "motherboards",
+      name: "Motherboards",
+      filter: "Motherboard",
+      image: motherboardImage,
+      isBig: false,
+    },
+    // [5] Below motherboards
+    {
+      id: "cases",
+      name: "Cases",
+      filter: "Case",
+      image: caseImage,
+      isBig: false,
+    },
+    // [6] Below cases
+    {
+      id: "psus",
+      name: "PSUs",
+      filter: "PSU",
+      image: psuImage,
+      isBig: false,
+    },
+    // [7] Bottom-right (last slot)
+    {
+      id: "peripherals",
+      name: "Peripherals",
+      filter: "Peripheral",
+      image: peripheralImage,
+      isBig: false,
+    },
+  ];
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-300 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 ">Products</h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Filter Panel */}
-        <div className="lg:col-span-1">
-          <FilterPanel
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            // categories={categories} // No longer passed
-          />
+    <div className="min-h-screen">
+      {/* Hero Section - With Imported Background Image */}
+      <section
+        className="hero min-h-[550px] text-base-content"
+        style={{
+          backgroundImage: `url(${heroBackgroundImage})`, // Use the imported variable
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="hero-overlay bg-opacity-35 bg-base-100"></div>{" "}
+        {/* Optional overlay for contrast */}
+        <div className="hero-content text-center">
+          <div className="max-w-md">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              Welcome to YC Informatique
+            </h1>
+            <p className="text-xl mb-8 text-base-content/80">
+              Your trusted partner for all your tech needs.
+            </p>
+            <div className=" w-full flex flex-row items-center justify-center gap-4">
+              <Link to="/products" className="btn btn-secondary">
+                Shop Now
+              </Link>
+              <Link to="/build-pc" className="btn btn-primary">
+                Build Your PC
+              </Link>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Product Grid */}
-        <div className="lg:col-span-3">
+      {/* Categories Section — Image with Name Button in Corner */}
+      <section className="py-12 bg-base-100">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold my-12 text-center">
+            Shop by Category
+          </h2>
+
+          {/* Fixed 4-column grid, explicit placement using hardcoded categories */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Card 0: Big CPU card — spans col 1-2, row 1-2 */}
+            <Link
+              key={hardcodedCategories[0].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[0].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-2 lg:row-span-2 flex flex-col" // Add flex properties to the link
+            >
+              <div className="relative flex-grow overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+                <img
+                  src={hardcodedCategories[0].image}
+                  alt={hardcodedCategories[0].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-6xl font-bold">
+                  {hardcodedCategories[0].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Cards 1–7: Fixed positions using hardcoded categories */}
+            {/* Row 1, Col 3 */}
+            <Link
+              key={hardcodedCategories[1].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[1].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-full w-full overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[1].image}
+                  alt={hardcodedCategories[1].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[1].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 2, Col 3 */}
+            <Link
+              key={hardcodedCategories[2].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[2].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[2].image}
+                  alt={hardcodedCategories[2].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[2].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 3, Col 3 */}
+            <Link
+              key={hardcodedCategories[3].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[3].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[3].image}
+                  alt={hardcodedCategories[3].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[3].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 1, Col 4 */}
+            <Link
+              key={hardcodedCategories[4].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[4].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[4].image}
+                  alt={hardcodedCategories[4].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[4].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 2, Col 4 */}
+            <Link
+              key={hardcodedCategories[5].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[5].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[5].image}
+                  alt={hardcodedCategories[5].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[5].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 3, Col 4 */}
+            <Link
+              key={hardcodedCategories[6].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[6].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-1 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[6].image}
+                  alt={hardcodedCategories[6].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[6].name}
+                </p>
+              </div>
+            </Link>
+
+            {/* Row 4, Col 4 (bottom-right) */}
+            <Link
+              key={hardcodedCategories[7].id}
+              to={`/products?category=${
+                encodeURIComponent(
+                  hardcodedCategories[7].filter.toLowerCase(),
+                )
+              }`}
+              className="lg:col-span-2 lg:row-span-1"
+            >
+              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={hardcodedCategories[7].image}
+                  alt={hardcodedCategories[7].name}
+                  className="w-full h-full object-cover"
+                />
+                {/* Shop Now Button Overlay (Center) */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="btn btn-primary text-white">Shop Now</span>
+                </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[7].name}
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 px-4 bg-inherit">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold my-12 text-center">
+            Featured Products
+          </h2>
+
           {loading
             ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="card bg-gray-800 shadow-xl">
-                    <div className="skeleton h-48 w-full bg-gray-700"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="card bg-base-100 shadow-xl">
+                    <div className="skeleton h-48 w-full"></div>
                     <div className="card-body">
-                      <div className="skeleton h-4 w-3/4 mb-2 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-4 w-full mb-2 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-4 w-1/2 mb-4 bg-gray-700">
-                      </div>
-                      <div className="skeleton h-8 w-full bg-gray-700"></div>
+                      <div className="skeleton h-4 w-3/4 mb-2"></div>
+                      <div className="skeleton h-4 w-full mb-2"></div>
+                      <div className="skeleton h-4 w-1/2 mb-4"></div>
+                      <div className="skeleton h-8 w-full"></div>
                     </div>
                   </div>
                 ))}
               </div>
             )
-            : (
-              <>
-                <p className="mb-4 ">
-                  Showing {filteredProducts.length} of {products.length}{" "}
-                  products
+            : error
+            ? (
+              <div className="text-center py-12">
+                <p className="text-xl mb-4 text-error">
+                  Error loading products: {error}
                 </p>
-
-                {filteredProducts.length === 0
-                  ? (
-                    <div className="text-center py-12">
-                      <p className="text-xl mb-4 ">
-                        No products found matching your criteria.
-                      </p>
-                      <button
-                        className="btn btn-secondary bg-gray-700 hover:bg-gray-600 "
-                        onClick={() => handleFilterChange("reset")}
-                      >
-                        Clear Filters
-                      </button>
-                    </div>
-                  )
-                  : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  )}
-              </>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => window.location.reload()} // Simple retry mechanism
+                >
+                  Retry
+                </button>
+              </div>
+            )
+            : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             )}
+
+          <div className="text-center mt-8">
+            <Link to="/products" className="btn btn-primary btn-outline">
+              View All Products
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
 
-export default Products;
+export default Home;
+
+
+File: public/vite.svg
+================================================
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+
+File: src/components/CartModel.jsx
+================================================
+import React from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useCart } from "../contexts/CartContext";
+import { TrashIcon } from "@heroicons/react/24/solid";
+
+const CartModal = ({ isOpen, onClose }) => {
+  const { cart, subtotal, tax, total, updateQuantity, removeFromCart } =
+    useCart();
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-75" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-base-100 p-6 text-left align-middle shadow-xl transition-all">
+                <div className="flex items-center justify-between">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6"
+                  >
+                    Shopping Cart ({cart.length})
+                  </Dialog.Title>
+                  <button
+                    type="button"
+                    className="rounded-md p-2 hover:bg-base-200"
+                    onClick={onClose}
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="mt-4 max-h-96 overflow-y-auto">
+                  {cart.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500">
+                      Your cart is empty
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {cart.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center space-x-4 p-3 border border-base-200 rounded-lg"
+                        >
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-16 h-16 object-contain"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {item.title}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              DZD {item.price}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              className="btn btn-xs"
+                              onClick={() =>
+                                updateQuantity(
+                                  item.id,
+                                  Math.max(1, item.quantity - 1),
+                                )
+                              }
+                            >
+                              -
+                            </button>
+                            <span className="text-sm">{item.quantity}</span>
+                            <button
+                              className="btn btn-xs"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            className="btn btn-error btn-xs"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {cart.length > 0 && (
+                  <div className="mt-6 space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>DZD {subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax (8%):</span>
+                      <span>DZD {tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>DZD {total.toFixed(2)}</span>
+                    </div>
+                    <button className="btn btn-primary w-full mt-4">
+                      Checkout
+                    </button>
+                  </div>
+                )}
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
+export default CartModal;
+
+
+File: src/contexts/AuthContext.jsx
+================================================
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+const AuthContext = createContext();
+
+// Simple mock user data for demonstration
+const MOCK_USER = {
+  id: 1,
+  name: "John Doe",
+  email: "john.doe@example.com",
+  joinDate: "2024-01-01",
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null); // Initially null (not logged in)
+  const [isLoading, setIsLoading] = useState(true); // To handle initial loading state
+
+  // Simulate checking for a stored session/token on app start
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      // Simulate an API call delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Check for a mock token in localStorage (or any other condition)
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        // If token exists, assume user is logged in and set user data
+        setUser(MOCK_USER);
+      } else {
+        // Otherwise, user is not logged in
+        setUser(null);
+      }
+      setIsLoading(false); // Finished checking
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  const login = (credentials) => {
+    // Simulate login process
+    console.log("Login attempt with:", credentials);
+    // For demo, just set the user and save a mock token
+    setUser(MOCK_USER);
+    localStorage.setItem("authToken", "mock-token-for-demo");
+  };
+
+  const logout = () => {
+    // Simulate logout process
+    setUser(null);
+    localStorage.removeItem("authToken");
+  };
+
+  // Value object passed to consumers
+  const value = {
+    user,
+    login,
+    logout,
+    isLoading, // Expose loading state
+    isAuthenticated: !!user, // Convenient boolean check
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+
+File: src/App.jsx
+================================================
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { CartProvider } from "./contexts/CartContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { Toaster } from "sonner";
+import Navbar from "./components/NavBar";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import BuildPC from "./pages/BuildPC";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import Account from "./pages/Account";
+import AuthPage from "./pages/Auth";
+
+function App() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <Router>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/build-pc" element={<BuildPC />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />{" "}
+                <Route path="/account" element={<Account />} />{" "}
+                <Route path="/auth" element={<AuthPage />} />
+              </Routes>
+            </main>
+            <div className="border-t border-base-300 my-8"></div>
+            <Footer />
+          </div>
+          <Toaster position="top-left" richColors />
+        </Router>
+      </CartProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
 
 
 File: package-lock.json
@@ -726,6 +2132,7 @@ File: package-lock.json
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-router-dom": "^7.13.0",
+        "sonner": "^2.0.7",
         "zustand": "^5.0.10"
       },
       "devDependencies": {
@@ -788,7 +2195,6 @@ File: package-lock.json
       "integrity": "sha512-H3mcG6ZDLTlYfaSNi0iOKkigqMFvkTKlGUYlD8GW7nNOYRrevuA46iTypPyv+06V3fEmvvazfntkBU34L0azAw==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "@babel/code-frame": "^7.28.6",
         "@babel/generator": "^7.28.6",
@@ -2416,7 +3822,6 @@ File: package-lock.json
       "integrity": "sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==",
       "devOptional": true,
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "csstype": "^3.2.2"
       }
@@ -2458,7 +3863,6 @@ File: package-lock.json
       "integrity": "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "bin": {
         "acorn": "bin/acorn"
       },
@@ -2685,7 +4089,6 @@ File: package-lock.json
         }
       ],
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "baseline-browser-mapping": "^2.9.0",
         "caniuse-lite": "^1.0.30001759",
@@ -3148,7 +4551,6 @@ File: package-lock.json
       "integrity": "sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "@eslint-community/eslint-utils": "^4.8.0",
         "@eslint-community/regexpp": "^4.12.1",
@@ -3814,7 +5216,6 @@ File: package-lock.json
       "integrity": "sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "bin": {
         "jiti": "bin/jiti.js"
       }
@@ -4228,7 +5629,6 @@ File: package-lock.json
       "integrity": "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "engines": {
         "node": ">=12"
       },
@@ -4276,7 +5676,6 @@ File: package-lock.json
         }
       ],
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "nanoid": "^3.3.11",
         "picocolors": "^1.1.1",
@@ -4472,7 +5871,6 @@ File: package-lock.json
       "resolved": "https://registry.npmjs.org/react/-/react-19.2.4.tgz",
       "integrity": "sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==",
       "license": "MIT",
-      "peer": true,
       "engines": {
         "node": ">=0.10.0"
       }
@@ -4482,7 +5880,6 @@ File: package-lock.json
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.2.4.tgz",
       "integrity": "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==",
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "scheduler": "^0.27.0"
       },
@@ -4728,6 +6125,16 @@ File: package-lock.json
       "license": "MIT",
       "engines": {
         "node": ">=8"
+      }
+    },
+    "node_modules/sonner": {
+      "version": "2.0.7",
+      "resolved": "https://registry.npmjs.org/sonner/-/sonner-2.0.7.tgz",
+      "integrity": "sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+        "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc"
       }
     },
     "node_modules/source-map-js": {
@@ -4988,7 +6395,6 @@ File: package-lock.json
       "integrity": "sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "dependencies": {
         "esbuild": "^0.27.0",
         "fdir": "^6.5.0",
@@ -5110,7 +6516,6 @@ File: package-lock.json
       "integrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
       "dev": true,
       "license": "MIT",
-      "peer": true,
       "funding": {
         "url": "https://github.com/sponsors/colinhacks"
       }
@@ -5161,1154 +6566,247 @@ File: package-lock.json
 }
 
 
-File: src/pages/Cart.jsx
+File: src/components/ThemeSwitcher.jsx
 ================================================
-// src/pages/Cart.jsx
-import React from "react";
-import { Link } from "react-router-dom";
-import { useCart } from "../contexts/CartContext";
-
-const Cart = () => {
-  const { cart, subtotal, total, updateQuantity, removeFromCart, clearCart } =
-    useCart(); // Removed tax
-
-  return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
-
-      {cart.length === 0
-        ? (
-          <div className="text-center py-12">
-            <p className="text-xl mb-4">Your cart is empty</p>
-            <Link to="/products" className="btn btn-primary">
-              Continue Shopping
-            </Link>
-          </div>
-        )
-        : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="space-y-4">
-                {cart.map((item) => (
-                  <div key={item.id} className="card bg-base-100 shadow-lg">
-                    <div className="card-body">
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-20 h-20 object-contain bg-base-200 p-2 rounded"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{item.title}</h3>
-                          <p className="text-primary font-bold">
-                            DZD {item.price}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            className="btn btn-xs"
-                            onClick={() =>
-                              updateQuantity(
-                                item.id,
-                                Math.max(1, item.quantity - 1),
-                              )}
-                          >
-                            -
-                          </button>
-                          <span className="mx-2">{item.quantity}</span>
-                          <button
-                            className="btn btn-xs"
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)}
-                          >
-                            +
-                          </button>
-                        </div>
-                        <button
-                          className="btn btn-error btn-xs"
-                          onClick={() =>
-                            removeFromCart(item.id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6">
-                <button
-                  className="btn btn-error btn-sm"
-                  onClick={clearCart}
-                >
-                  Clear Cart
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <div className="card bg-base-100 shadow-lg sticky top-24">
-                <div className="card-body">
-                  <h3 className="card-title">Order Summary</h3>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>DZD {subtotal.toFixed(2)}</span>
-                    </div>
-                    {/* Removed Tax calculation and display */}
-                    <div className="divider"></div>
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span>DZD {total.toFixed(2)}</span>{" "}
-                      {/* Total now equals Subtotal */}
-                    </div>
-                  </div>
-
-                  {/* Updated button to link to /checkout */}
-                  <Link to="/checkout" className="btn btn-primary w-full mt-4">
-                    Proceed to Checkout
-                  </Link>
-
-                  <Link to="/products" className="btn btn-outline w-full mt-2">
-                    Continue Shopping
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-    </div>
-  );
-};
-
-export default Cart;
-
-
-File: src/main.jsx
-================================================
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-
-
-File: postcss.config.js
-================================================
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-
-
-File: package.json
-================================================
-{
-  "name": "frontend-user",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@headlessui/react": "^2.2.9",
-    "@heroicons/react": "^2.2.0",
-    "axios": "^1.13.4",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.0",
-    "zustand": "^5.0.10"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.23",
-    "daisyui": "^4",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.19",
-    "vite": "^7.2.4"
-  }
-}
-
-
-File: src/components/FilterPanel.jsx
-================================================
-// src/components/FilterPanel.jsx
+import {
+  ComputerDesktopIcon,
+  MoonIcon,
+  SunIcon,
+} from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
-import { fetchCategories } from "../services/api"; // Import fetchCategories
 
-const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories prop as we fetch them here
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true); // Optional loading state for categories
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        setLoading(true); // Optional
-        const data = await fetchCategories();
-        // Map to the format expected by the select (id, name)
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories for filter:", error);
-        // Optionally, set an error state or show a message
-      } finally {
-        setLoading(false); // Optional
+const ThemeSwitcher = () => {
+  // Determine initial theme based on localStorage or default to light ('fantasy')
+  const getInitialTheme = () => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      // Validate saved theme exists in our list (optional but good practice)
+      const availableThemes = ["fantasy", "night"];
+      if (availableThemes.includes(savedTheme)) {
+        return savedTheme;
       }
-    };
+    }
+    // Default to light theme ('fantasy')
+    return "fantasy";
+  };
 
-    loadCategories();
-  }, []);
+  const [currentTheme, setCurrentTheme] = useState(getInitialTheme);
 
-  if (loading) { // Optional: Show loading state for categories
-    return (
-      <div className="bg-base-100 p-4 rounded-lg shadow-md">
-        <div className="skeleton h-4 w-1/4 mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-8 w-full"></div>
-      </div>
-    );
-  }
+  // Apply theme on component mount and when currentTheme changes
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", currentTheme);
+    // Save the theme to localStorage whenever it changes
+    localStorage.setItem("theme", currentTheme);
+  }, [currentTheme]);
+
+  const toggleTheme = () => {
+    const newTheme = currentTheme === "fantasy" ? "night" : "fantasy";
+    setCurrentTheme(newTheme);
+    // The useEffect will handle saving to localStorage and applying the attribute
+  };
 
   return (
-    <div className="bg-base-100 p-4 rounded-lg shadow-md">
-      <h3 className="font-bold text-lg mb-4 ">Filters</h3>
-
-      {/* Category Filter - Updated to use fetched categories */}
-      <div className="mb-4">
-        <label className="label">
-          <span className="label-text ">Category</span>
-        </label>
-        <select
-          className="select select-bordered w-full bg-primary-content"
-          value={filters.category}
-          onChange={(e) => onFilterChange("category", e.target.value)}
-        >
-          <option value="" className="bg-primary-content">
-            All Categories
-          </option>
-          {categories.map((category) => (
-            <option
-              key={category.id}
-              value={category.name}
-              className="bg-primary-content"
-            >
-              {category.name}
-            </option>
-          ))}
-        </select>
+    <button
+      onClick={toggleTheme}
+      to="/build-pc"
+      className={`flex flex-col items-center transition`} // Changed text-red-500 to text-primary, text-gray-300 to text-base-content, hover:text-white to hover:text-primary
+    >
+      <div>
+        {currentTheme === "fantasy" ? (
+          <MoonIcon className="h-6 w-6" />
+        ) : (
+          <SunIcon className="h-6 w-6" />
+        )}{" "}
       </div>
+      <p className="text-xs mt-1">
+        {currentTheme === "fantasy" ? "Dark Mode" : "Light Mode"}{" "}
+      </p>
+    </button>
+    // <button
+    //   onClick={toggleTheme}
+    //   className="btn btn-sm bg-base-100" // Keeping your original classes
+    //   aria-label={`Toggle to ${
+    //     currentTheme === "fantasy" ? "dark" : "light"
+    //   } mode`}
+    // >
+    //   <div className="flex flex-col items-center p-2">
+    //   </div>
 
-      {/* Price Range Filter */}
-      <div className="mb-4">
-        <label className="label">
-          <span className="label-text ">Price Range</span>
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            placeholder="Min"
-            className="input input-bordered bg-primary-content  border-gray-600"
-            value={filters.minPrice}
-            onChange={(e) => onFilterChange("minPrice", e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Max"
-            className="input input-bordered bg-primary-content  border-gray-600"
-            value={filters.maxPrice}
-            onChange={(e) => onFilterChange("maxPrice", e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Brand Filter */}
-      <div className="mb-4">
-        <label className="label">
-          <span className="label-text ">Brand</span>
-        </label>
-        <select
-          className="select select-bordered w-full bg-primary-content  border-gray-600"
-          value={filters.brand}
-          onChange={(e) => onFilterChange("brand", e.target.value)}
-        >
-          <option value="" className="bg-primary-content ">
-            All Brands
-          </option>
-          <option value="Intel" className="bg-primary-content ">
-            Intel
-          </option>
-          <option value="AMD" className="bg-primary-content ">AMD</option>
-          <option value="NVIDIA" className="bg-primary-content ">
-            NVIDIA
-          </option>
-          <option value="Samsung" className="bg-primary-content ">
-            Samsung
-          </option>
-          <option value="Corsair" className="bg-primary-content ">
-            Corsair
-          </option>
-        </select>
-      </div>
-
-      <button
-        className="btn btn-secondary text-primary bg-primary-content hover:bg-primary-content/70 w-full"
-        onClick={() => onFilterChange("reset")}
-      >
-        Reset Filters
-      </button>
-    </div>
+    //   {/* Using text labels */}
+    // </button>
   );
 };
 
-export default FilterPanel;
+export default ThemeSwitcher;
 
 
-File: src/pages/Home.jsx
+File: src/pages/Products.jsx
 ================================================
-// src/pages/Home.jsx
+// src/pages/Products.jsx
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { fetchCategories, fetchProducts } from "../services/api"; // Import the new API functions
+import FilterPanel from "../components/FilterPanel";
+import { fetchProducts } from "../services/api"; // Import the new API function
+import { toast } from "sonner";
 
-// Import the hero background image
-import heroBackgroundImage from "../assets/heroBackgroundImage.png";
-
-const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+const Products = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    category: searchParams.get("category") || "",
+    minPrice: "",
+    maxPrice: "",
+    brand: "",
+  });
+
+  // Categories will now be fetched by FilterPanel
+  // const categories = ['CPUs', 'GPUs', 'RAM', 'Storage', 'Motherboards', 'Cases', 'PSUs', 'Peripherals'];
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        // Fetch products (this internally fetches categories if needed)
-        const products = await fetchProducts();
-        setFeaturedProducts(products.slice(0, 8)); // Get first 8 products
+        setError(null); // Clear previous errors
+        setLoading(true); // Ensure loading is true before fetch
+        const data = await fetchProducts(); // Fetch from real API
+        setProducts(data);
+        setFilteredProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
-        // Optionally, set an error state or show a message to the user
+        setError(
+          error.message || "Failed to load products. Please try again later.",
+        ); // Set error message
+        toast.error("Failed to load products. Please try again later."); // Show toast
       } finally {
-        setLoading(false); // Stop loading indicator regardless of success/error
+        setLoading(false);
       }
     };
     loadProducts();
-  }, []); // Empty dependency array means this runs once on mount
-
-  const hardcodedCategories = [
-    // [0] Big card: CPUs (spans 2 cols × 2 rows)
-    {
-      id: "cpus",
-      name: "CPUs",
-      image: "https://placehold.co/800x600/1e293b/ffffff?text=CPUs",
-      isBig: true,
-    },
-    // [1] Top-right
-    {
-      id: "gpus",
-      name: "GPUs",
-      image: "https://placehold.co/600x400/1e293b/ffffff?text=GPUs",
-      isBig: false,
-    },
-    // [2] Below GPUs
-    {
-      id: "ram",
-      name: "RAM",
-      image: "https://placehold.co/500x400/1e293b/ffffff?text=RAM",
-      isBig: false,
-    },
-    // [3] Below RAM
-    {
-      id: "storage",
-      name: "Storage",
-      image: "https://placehold.co/700x500/1e293b/ffffff?text=Storage",
-      isBig: false,
-    },
-    // [4] Right of big card (row 1, col 3)
-    {
-      id: "motherboards",
-      name: "Motherboards",
-      image: "https://placehold.co/600x450/1e293b/ffffff?text=Mobo",
-      isBig: false,
-    },
-    // [5] Below motherboards
-    {
-      id: "cases",
-      name: "Cases",
-      image: "https://placehold.co/550x350/1e293b/ffffff?text=Cases",
-      isBig: false,
-    },
-    // [6] Below cases
-    {
-      id: "psus",
-      name: "PSUs",
-      image: "https://placehold.co/450x400/1e293b/ffffff?text=PSU",
-      isBig: false,
-    },
-    // [7] Bottom-right (last slot)
-    {
-      id: "peripherals",
-      name: "Peripherals",
-      image: "https://placehold.co/650x450/1e293b/ffffff?text=Peripherals",
-      isBig: false,
-    },
-  ];
-
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section - With Imported Background Image */}
-      <section
-        className="hero min-h-96 text-base-content"
-        style={{
-          backgroundImage: `url(${heroBackgroundImage})`, // Use the imported variable
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="hero-overlay bg-opacity-60 bg-base-100"></div>{" "}
-        {/* Optional overlay for contrast */}
-        <div className="hero-content text-center">
-          <div className="max-w-md">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Welcome to ALM Informatique
-            </h1>
-            <p className="text-xl mb-8 text-base-content/80">
-              Your trusted partner for all your tech needs.
-            </p>
-            <Link to="/products" className="btn btn-primary">
-              Shop Now
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section — Image with Name Button in Corner */}
-      <section className="py-12 bg-base-100">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Shop by Category
-          </h2>
-
-          {/* Fixed 4-column grid, explicit placement using hardcoded categories */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Card 0: Big CPU card — spans col 1-2, row 1-2 */}
-            <Link
-              key={hardcodedCategories[0].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[0].name.toLowerCase())
-              }`} // Encode the category name
-              className="lg:col-span-2 lg:row-span-2"
-            >
-              <div className="relative h-96 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
-                <img
-                  src={hardcodedCategories[0].image}
-                  alt={hardcodedCategories[0].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[0].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Cards 1–7: Fixed positions using hardcoded categories */}
-            {/* Row 1, Col 3 */}
-            <Link
-              key={hardcodedCategories[1].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[1].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-full w-full overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[1].image}
-                  alt={hardcodedCategories[1].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[1].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 2, Col 3 */}
-            <Link
-              key={hardcodedCategories[2].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[2].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[2].image}
-                  alt={hardcodedCategories[2].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[2].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 3, Col 3 */}
-            <Link
-              key={hardcodedCategories[3].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[3].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[3].image}
-                  alt={hardcodedCategories[3].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[3].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 1, Col 4 */}
-            <Link
-              key={hardcodedCategories[4].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[4].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[4].image}
-                  alt={hardcodedCategories[4].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[4].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 2, Col 4 */}
-            <Link
-              key={hardcodedCategories[5].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[5].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[5].image}
-                  alt={hardcodedCategories[5].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[5].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 3, Col 4 */}
-            <Link
-              key={hardcodedCategories[6].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[6].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[6].image}
-                  alt={hardcodedCategories[6].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[6].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Row 4, Col 4 (bottom-right) */}
-            <Link
-              key={hardcodedCategories[7].id}
-              to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[7].name.toLowerCase())
-              }`}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img
-                  src={hardcodedCategories[7].image}
-                  alt={hardcodedCategories[7].name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[7].name}
-                </button>
-                {/* Shop Now Button Overlay (Center) */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products Section */}
-      <section className="py-12 px-4 bg-base-200">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Featured Products
-          </h2>
-
-          {loading
-            ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="card bg-base-100 shadow-xl">
-                    <div className="skeleton h-48 w-full"></div>
-                    <div className="card-body">
-                      <div className="skeleton h-4 w-3/4 mb-2"></div>
-                      <div className="skeleton h-4 w-full mb-2"></div>
-                      <div className="skeleton h-4 w-1/2 mb-4"></div>
-                      <div className="skeleton h-8 w-full"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-            : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {featuredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-
-          <div className="text-center mt-8">
-            <Link to="/products" className="btn btn-outline">
-              View All Products
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-};
-
-export default Home;
-
-
-File: src/App.jsx
-================================================
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { CartProvider } from "./contexts/CartContext";
-import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
-import Navbar from "./components/NavBar";
-import Footer from "./components/Footer"; // Import the new Footer component
-import Home from "./pages/Home";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import BuildPC from "./pages/BuildPC";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout"; // Import the new Checkout page
-import Account from "./pages/Account"; // Import Account page
-import AuthPage from "./pages/Auth"; // Import the new Auth page
-
-function App() {
-  return (
-    <AuthProvider>
-      {/* Wrap everything with AuthProvider */}
-      <CartProvider>
-        <Router>
-          {/* Removed bg-base-100 from here. Let daisyUI theme handle it. */}
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              {/* Flex-grow pushes footer to bottom */}
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/build-pc" element={<BuildPC />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />{" "}
-                {/* Checkout route */}
-                <Route path="/account" element={<Account />} />{" "}
-                {/* Account route */}
-                <Route path="/auth" element={<AuthPage />} /> {/* Auth route */}
-              </Routes>
-            </main>
-            <div className="border-t border-base-300 my-8"></div>
-            <Footer /> {/* Add Footer here */}
-          </div>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
-  );
-}
-
-export default App;
-
-
-File: tailwind.config.js
-================================================
-// tailwind.config.js
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [require("daisyui")],
-  daisyui: {
-    themes: [
-      "coffee", // Dracula theme
-      "winter", // Light theme
-    ],
-  },
-};
-
-
-File: src/pages/ProductDetail.jsx
-================================================
-// src/pages/ProductDetail.jsx
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useCart } from "../contexts/CartContext";
-import { fetchProductById } from "../services/api"; // Import the new API function
-
-const ProductDetail = () => {
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  }, []);
 
   useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        const data = await fetchProductById(id); // Fetch from real API
-        setProduct(data);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        // Optionally, set an error state or redirect
-      }
-    };
-    loadProduct();
-  }, [id]);
+    let filtered = products;
 
-  const handleAddToCart = () => {
-    if (product) {
-      addToCart({ ...product, quantity });
+    // Apply filters
+    if (filters.category) {
+      filtered = filtered.filter((p) =>
+        p.category.toLowerCase().includes(filters.category.toLowerCase()),
+      );
+    }
+    if (filters.minPrice) {
+      filtered = filtered.filter(
+        (p) => p.price >= parseFloat(filters.minPrice),
+      );
+    }
+    if (filters.maxPrice) {
+      filtered = filtered.filter(
+        (p) => p.price <= parseFloat(filters.maxPrice),
+      );
+    }
+    if (filters.brand) {
+      filtered = filtered.filter((p) =>
+        p.brand.toLowerCase().includes(filters.brand.toLowerCase()),
+      );
+    }
+
+    setFilteredProducts(filtered);
+  }, [filters, products]);
+
+  const handleFilterChange = (key, value) => {
+    if (key === "reset") {
+      setFilters({ category: "", minPrice: "", maxPrice: "", brand: "" });
+      setSearchParams({});
+    } else {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+      if (value) {
+        setSearchParams({ [key]: value });
+      } else {
+        searchParams.delete(key);
+        setSearchParams(searchParams);
+      }
     }
   };
 
-  if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
-        <div className="skeleton h-96 w-full mb-6 bg-gray-800"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <div className="skeleton h-8 w-3/4 mb-4 bg-gray-800"></div>
-            <div className="skeleton h-4 w-full mb-2 bg-gray-800"></div>
-            <div className="skeleton h-4 w-5/6 mb-6 bg-gray-800"></div>
-            <div className="skeleton h-12 w-full bg-gray-800"></div>
-          </div>
-          <div>
-            <div className="skeleton h-64 w-full bg-gray-800"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
-      {/* Updated Link with btn-sm */}
-      <Link
-        to="/products"
-        className="btn btn-sm btn-ghost mb-6 flex items-center"
-      >
-        <ArrowLeftIcon className="h-4 w-4 mr-2" />
-        Back to Products
-      </Link>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Image Gallery */}
-        <div>
-          <div className="aspect-square mb-4 bg-base-100 rounded-lg p-4">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full h-full object-contain rounded-lg"
-            />
-          </div>
-          <div className="flex space-x-2">
-            {[product.image].map((img, index) => (
-              <button
-                key={index}
-                className={`w-16 h-16 border rounded ${
-                  selectedImage === index
-                    ? "border-primary"
-                    : "border-transparent"
-                } bg-base-100`}
-                onClick={() => setSelectedImage(index)}
-              >
-                <img
-                  src={img}
-                  alt=""
-                  className="w-full h-full object-cover rounded"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Product Info */}
-        <div>
-          <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl font-bold text-primary">
-              ${product.price}
-            </span>
-            {/* Removed discount calculation if not in API */}
-            {/* <span className="line-through text-gray-500">${(product.price * 1.2).toFixed(2)}</span> */}
-            {/* <span className="badge badge-success bg-green-600 text-white">20% OFF</span> */}
-          </div>
-
-          <div className="mb-6">
-            <p className="text-gray-600 mb-4">{product.description}</p>
-
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2">Specifications:</h3>
-              <table className="table table-zebra bg-base-100">
-                <tbody>
-                  <tr>
-                    <td>Category</td>
-                    <td>{product.category}</td>
-                  </tr>
-                  <tr>
-                    <td>Brand</td>
-                    <td>{product.brand}</td>
-                  </tr>
-                  {/* Add more specs from product.spec_highlights if needed */}
-                  <tr>
-                    <td>Stock Quantity</td>
-                    <td
-                      className={product.stock > 0
-                        ? "text-success"
-                        : "text-error"}
-                    >
-                      {product.stock > 0
-                        ? `${product.stock} In Stock`
-                        : "Out of Stock"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center">
-              <button
-                className="btn btn-sm"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              >
-                -
-              </button>
-              <span className="mx-2">{quantity}</span>
-              <button
-                className="btn btn-sm"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                +
-              </button>
-            </div>
-            <button
-              className="btn btn-primary flex-1"
-              onClick={handleAddToCart}
-            >
-              Add to Cart
-            </button>
-          </div>
-
-          <div className="divider"></div>
-          <div className="flex gap-4">
-            <button className="btn btn-outline">Add to Wishlist</button>
-            <button className="btn btn-outline">Compare</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Related Products */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Related products would go here */}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ProductDetail;
-
-
-File: src/index.css
-================================================
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-
-File: vite.config.js
-================================================
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-});
-
-
-File: index.html
-================================================
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="src/assets/lion.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ALM Informatique</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-
-
-File: src/pages/Account.jsx
-================================================
-// src/pages/Account.jsx
-import React from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // Import useAuth
-
-const Account = () => {
-  const { user, logout } = useAuth(); // Get user and logout function
-
-  // If no user is logged in, maybe redirect or show a message
-  // For now, let's just render nothing if not logged in, assuming the router handles protection
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl mb-4">You are not logged in.</p>
-          <Link to="/auth" className="btn btn-primary">Go to Login/Signup</Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Mock recent orders (you might fetch this based on user ID later)
-  const recentOrders = [
-    {
-      id: "#12345",
-      date: "2024-05-15",
-      status: "Delivered",
-      total: "DZD 249.99",
-    },
-    { id: "#12344", date: "2024-05-10", status: "Shipped", total: "DZD 89.50" },
-    {
-      id: "#12343",
-      date: "2024-05-05",
-      status: "Processing",
-      total: "DZD 1,200.00",
-    },
-  ];
-
-  return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">My Account</h1>
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+      <h1 className="text-3xl font-bold mb-8 ">Products</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar Navigation */}
+        {/* Filter Panel */}
         <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <h2 className="card-title text-lg mb-4">Account Menu</h2>
-              <ul className="menu bg-base-100 w-full rounded-box">
-                <li>
-                  <Link to="/account" className="active">Dashboard</Link>
-                </li>
-                <li>
-                  <Link to="/account/orders">My Orders</Link>
-                </li>
-                <li>
-                  <Link to="/account/settings">Account Settings</Link>
-                </li>
-                <li>
-                  <button
-                    onClick={logout}
-                    className="btn w-full text-left"
-                  >
-                    Log Out
-                  </button>
-                </li>{" "}
-                {/* Logout button */}
-              </ul>
-            </div>
-          </div>
+          <FilterPanel
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            // categories={categories} // No longer passed
+          />
         </div>
 
-        {/* Main Content Area */}
+        {/* Product Grid */}
         <div className="lg:col-span-3">
-          {/* Welcome Section */}
-          <div className="card bg-base-100 shadow-lg mb-6">
-            <div className="card-body">
-              <h2 className="card-title">Welcome, {user.name}!</h2>
-              <p className="text-gray-600">Member since {user.joinDate}</p>
-              <div className="mt-4">
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-              </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="card bg-inherit shadow-xl">
+                  <div className="skeleton h-48 w-full bg-gray-700/50"></div>
+                  <div className="card-body">
+                    <div className="skeleton h-4 w-3/4 mb-2 bg-gray-700/50"></div>
+                    <div className="skeleton h-4 w-full mb-2 bg-gray-700/50"></div>
+                    <div className="skeleton h-4 w-1/2 mb-4 bg-gray-700/50"></div>
+                    <div className="skeleton h-8 w-full bg-gray-700/50"></div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Recent Orders */}
-          <div className="card bg-base-100 shadow-lg mb-6">
-            <div className="card-body">
-              <h3 className="card-title text-lg">Recent Orders</h3>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra">
-                  <thead>
-                    <tr>
-                      <th>Order #</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Total</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentOrders.map((order) => (
-                      <tr key={order.id}>
-                        <td>{order.id}</td>
-                        <td>{order.date}</td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              order.status === "Delivered"
-                                ? "badge-success"
-                                : order.status === "Shipped"
-                                ? "badge-info"
-                                : "badge-warning"
-                            }`}
-                          >
-                            {order.status}
-                          </span>
-                        </td>
-                        <td>{order.total}</td>
-                        <td>
-                          <Link
-                            to={`/account/order/${order.id}`}
-                            className="btn btn-xs"
-                          >
-                            View
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="card-actions justify-end mt-4">
-                <Link to="/account/orders" className="btn btn-outline">
-                  View All Orders
-                </Link>
-              </div>
+          ) : error ? (
+            // Show error state if error occurred
+            <div className="text-center py-12">
+              <p className="text-xl mb-4 text-error">
+                Error loading products: {error}
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => window.location.reload()} // Simple retry mechanism
+              >
+                Retry
+              </button>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* <p className="mb-4 ">
+                Showing {filteredProducts.length} of {products.length} products
+              </p> */}
 
-          {/* Removed Wishlist Preview section */}
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-xl mb-4 ">
+                    No products found matching your criteria.
+                  </p>
+                  <button
+                    className="btn btn-secondary bg-gray-700 hover:bg-gray-600 "
+                    onClick={() => handleFilterChange("reset")}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Account;
+export default Products;
 
 
 File: src/App.css
@@ -6357,480 +6855,160 @@ File: src/App.css
 }
 
 
-File: eslint.config.js
+File: devbox.json
 ================================================
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
+{
+  "$schema":  "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
+  "packages": ["nodejs@latest"],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
     ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-    },
-  },
-])
-
-
-File: README.md
-================================================
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-
-File: src/components/NavBar.jsx
-================================================
-// src/components/Navbar.jsx
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  ComputerDesktopIcon,
-  CubeIcon, // Added
-  EnvelopeIcon,
-  MapPinIcon,
-  PhoneIcon,
-  ShoppingCartIcon,
-  UserCircleIcon, // Added
-} from "@heroicons/react/24/outline";
-import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../contexts/AuthContext"; // Import useAuth
-import ThemeSwitcher from "./ThemeSwitcher"; // Import the new component
-
-// Import the logo image
-import logoImage from "../assets/logo.png"; // Adjust the filename if needed (e.g., logo.svg, logo.jpg)
-
-const Navbar = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMiniCartOpen, setIsMiniCartOpen] = useState(false); // State for mini-cart
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { cart, subtotal } = useCart(); // Get cart items and subtotal
-  const { user, isLoading } = useAuth(); // Get user and loading state from auth context
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm("");
+    "scripts": {
+      "test": [
+        "echo \"Error: no test specified\" && exit 1"
+      ]
     }
-  };
+  }
+}
+
+
+File: src/components/FilterPanel.jsx
+================================================
+// src/components/FilterPanel.jsx
+import React, { useEffect, useState } from "react";
+import { fetchCategories } from "../services/api"; // Import fetchCategories
+
+const FilterPanel = ({ filters, onFilterChange }) => {
+  // Removed categories prop as we fetch them here
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true); // Optional loading state for categories
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+    const loadCategories = async () => {
+      try {
+        setLoading(true); // Optional
+        const data = await fetchCategories();
+        // Map to the format expected by the select (id, name)
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories for filter:", error);
+        // Optionally, set an error state or show a message
+      } finally {
+        setLoading(false); // Optional
+      }
+    };
 
-  const isBuildPCPage = location.pathname === "/build-pc";
+    loadCategories();
+  }, []);
 
-  // State for the category dropdown
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-
-  const categories = [
-    "All Categories", // This serves as a placeholder too
-    "CPUs",
-    "GPUs",
-    "RAM",
-    "Storage",
-    "Motherboards",
-    "Cases",
-    "PSUs",
-    "Peripherals",
-    // These are the mockup category types
-  ];
-
-  const handleCategoryChange = (e) => {
-    const newCategory = e.target.value;
-    setSelectedCategory(newCategory);
-    // Optionally, trigger a filter action here if needed globally
-    // e.g., setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
-  };
-  let phoneNumber = "+079999999";
-  let address = "TAHER, Jijel, Algeria";
-  let currency = "DZD";
-  // Determine the account link destination based on auth state
-  let accountLinkDestination = "/auth"; // Default to auth page
-  if (isLoading) {
-    accountLinkDestination = "#"; // Or maybe don't render the link at all temporarily
-  } else if (user) {
-    accountLinkDestination = "/account";
-  } else {
-    accountLinkDestination = "/auth";
+  if (loading) {
+    // Optional: Show loading state for categories
+    return (
+      <div className="bg-base-100 p-4 rounded-lg shadow-md">
+        <div className="skeleton h-4 w-1/4 mb-4"></div>
+        <div className="skeleton h-10 w-full mb-4"></div>
+        <div className="skeleton h-10 w-full mb-4"></div>
+        <div className="skeleton h-10 w-full mb-4"></div>
+        <div className="skeleton h-8 w-full"></div>
+      </div>
+    );
   }
 
-  // Improved hover handlers
-  const handleCartHover = () => {
-    setIsMiniCartOpen(true);
-  };
-
-  const handleCartLeave = () => {
-    // Use a timeout to allow for brief movement to the dropdown
-    setTimeout(() => {
-      if (!document.querySelector(".mini-cart-dropdown:hover")) {
-        setIsMiniCartOpen(false);
-      }
-    }, 100); // 100ms delay before closing
-  };
-
-  const handleDropdownHover = () => {
-    setIsMiniCartOpen(true); // Keep it open if hovering dropdown
-  };
-
-  const handleDropdownLeave = () => {
-    setIsMiniCartOpen(false); // Close when leaving dropdown
-  };
-
   return (
-    <React.Fragment>
-      {/* Top Info Bar — Desktop Only - Using daisyUI semantic classes */}
-      <div className="bg-base-300 text-base-content text-sm py-1 px-4 flex justify-between items-center hidden md:flex">
-        {/* Changed bg-gray-900 to bg-base-300 */}
-        <div className="flex items-center space-x-6">
-          <a
-            href="tel:+021-95-51-84"
-            className="flex items-center hover:text-primary transition"
-          >
-            {/* Changed hover:text-white to hover:text-primary */}
-            <PhoneIcon className="h-4 w-4 mr-1" />
-            {phoneNumber}
-          </a>
-          <a
-            href="mailto:email@email.com"
-            className="flex items-center hover:text-primary transition"
-          >
-            {/* Changed hover:text-white to hover:text-primary */}
-            <EnvelopeIcon className="h-4 w-4 mr-1" />
-            email@email.com
-          </a>
-          <span className="flex items-center">
-            <MapPinIcon className="h-4 w-4 mr-1" />
-            {address}
-          </span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="font-medium">{currency}</span>
-          {/* Dynamic Link */}
-          <Link
-            to={accountLinkDestination}
-            className="hover:text-primary transition"
-          >
-            {/* Changed hover:text-white to hover:text-primary */}
-            {user ? `Hello, ${user.name}` : "My Account"}{" "}
-            {/* Show username if logged in */}
-          </Link>
+    <div className="bg-base-100 p-4 rounded-lg shadow-md border border-base-200">
+      <h3 className="font-bold text-lg mb-4 ">Filters</h3>
+
+      {/* Category Filter - Updated to use fetched categories */}
+      <div className="mb-4">
+        <label className="label">
+          <span className="label-text ">Category</span>
+        </label>
+        <select
+          className="select select-bordered w-full bg-base-100"
+          value={filters.category}
+          onChange={(e) => onFilterChange("category", e.target.value)}
+        >
+          <option value="" className="bg-base-100">
+            All Categories
+          </option>
+          {categories.map((category) => (
+            <option
+              key={category.id}
+              value={category.name}
+              className="bg-base-100"
+            >
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Price Range Filter */}
+      <div className="mb-4">
+        <label className="label">
+          <span className="label-text ">Price Range</span>
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="Min"
+            className="input input-bordered bg-base-100  border-gray-600"
+            value={filters.minPrice}
+            onChange={(e) => onFilterChange("minPrice", e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Max"
+            className="input input-bordered bg-base-100  border-gray-600"
+            value={filters.maxPrice}
+            onChange={(e) => onFilterChange("maxPrice", e.target.value)}
+          />
         </div>
       </div>
 
-      {/* Main Navbar - Using daisyUI semantic classes */}
-      <nav className="bg-base-100 border-b border-base-300 py-3 px-4">
-        {/* Changed bg-gray-900 to bg-base-100, border-gray-800 to border-base-300 */}
-        <div className="container mx-auto flex items-center justify-between">
-          {/* Logo - Left */}
-          <Link to="/" className="flex items-center space-x-2">
-            {/* Added space-x-2 for gap between logo and text */}
-            {/* Imported Logo Image - Rounded */}
-            <img
-              src={logoImage} // Use the imported variable
-              alt="ALM Informatique Logo"
-              className="h-8 w-8 rounded-full" // Added rounded-full for rounded corners
-            />
-            <span className="text-xl md:text-2xl font-bold text-base-content">
-              {/* Changed text-white to text-base-content */}
-              ALM<span className="text-primary">.</span> Informatique
-            </span>
-          </Link>
+      {/* Brand Filter */}
+      <div className="mb-4">
+        <label className="label">
+          <span className="label-text ">Brand</span>
+        </label>
+        <select
+          className="select select-bordered w-full bg-base-100  border-gray-600"
+          value={filters.brand}
+          onChange={(e) => onFilterChange("brand", e.target.value)}
+        >
+          <option value="" className="bg-base-100">
+            All Brands
+          </option>
+          <option value="Intel" className="bg-base-100">
+            Intel
+          </option>
+          <option value="AMD" className="bg-base-100">
+            AMD
+          </option>
+          <option value="NVIDIA" className="bg-base-100">
+            NVIDIA
+          </option>
+          <option value="Samsung" className="bg-base-100">
+            Samsung
+          </option>
+          <option value="Corsair" className="bg-base-100">
+            Corsair
+          </option>
+        </select>
+      </div>
 
-          {/* Centered Search Bar (Desktop) - Updated to use native select dropdown with arrow and separator */}
-          <div className="hidden md:flex justify-center flex-1 max-w-2xl">
-            <form onSubmit={handleSearch} className="w-full max-w-lg">
-              <div className="flex rounded-lg overflow-hidden bg-base-200">
-                {/* Changed bg-gray-800 to bg-base-200 */}
-                {/* Category Select with Custom Arrow */}
-                <div className="relative">
-                  {/* Wrapper for arrow positioning */}
-                  <select
-                    value={selectedCategory}
-                    onChange={handleCategoryChange}
-                    className="bg-base-200 text-base-content px-4 py-3 border-none focus:outline-none min-w-[120px] appearance-none pl-4 pr-8 cursor-pointer" // Changed bg-gray-800 to bg-base-200, text-gray-300 to text-base-content
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                  {/* Custom Arrow SVG */}
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-base-content">
-                    {/* Changed text-gray-300 to text-base-content */}
-                    <svg
-                      width="12px"
-                      height="12px"
-                      className="h-3 w-3 fill-current"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 2048 2048"
-                    >
-                      <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z">
-                      </path>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Separator Bar */}
-                <div className="self-stretch w-px bg-base-300"></div>{" "}
-                {/* Changed bg-gray-700 to bg-base-300 */}
-
-                <input
-                  type="text"
-                  placeholder="Search here"
-                  className="flex-1 px-4 py-3 bg-base-200 text-base-content focus:outline-none focus:ring-2 focus:ring-primary" // Changed bg-gray-800 to bg-base-200, text-white to text-base-content, focus:ring-red-500 to focus:ring-primary
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="bg-primary hover:bg-primary-focus text-primary-content px-5 py-3 font-medium transition" // Changed bg-red-500 to bg-primary, hover:bg-red-600 to hover:bg-primary-focus, text-white to text-primary-content
-                >
-                  Search
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Icons - Desktop - Added Theme Switcher */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Reduced space-x from 6 to 4 */}
-            <ThemeSwitcher /> {/* Add the ThemeSwitcher component */}
-            <Link
-              to="/build-pc"
-              className={`flex flex-col items-center ${
-                isBuildPCPage
-                  ? "text-primary"
-                  : "text-base-content hover:text-primary"
-              } transition`} // Changed text-red-500 to text-primary, text-gray-300 to text-base-content, hover:text-white to hover:text-primary
-            >
-              <ComputerDesktopIcon className="h-6 w-6" />
-              <span className="text-xs mt-1">Build PC</span>
-            </Link>
-
-            {/* Mini-Cart Dropdown Container - Added relative */}
-            <div
-              className="relative group" // Added relative for dropdown positioning
-              onMouseEnter={handleCartHover} // Hover handler for the container
-              onMouseLeave={handleCartLeave} // Leave handler for the container
-            >
-              {/* Cart Link with Badge - Removed hover triggers from here */}
-              <Link
-                to="/cart"
-                className="flex flex-col items-center text-base-content hover:text-primary transition relative" // Changed text-gray-300 to text-base-content, hover:text-white to hover:text-primary
-              >
-                <ShoppingCartIcon className="h-6 w-6" />
-                <span className="text-xs mt-1">Your Cart</span>
-                {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-content text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {/* Changed bg-red-500 to bg-primary, text-white to text-primary-content */}
-                    {cart.length}
-                  </span>
-                )}
-              </Link>
-
-              {/* Mini-Cart Dropdown - Conditionally Rendered */}
-              {isMiniCartOpen && cart.length > 0 && ( // Show only if open and cart has items
-                <div
-                  className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300" // Used bg-base-100 for dropdown
-                  onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
-                  onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
-                >
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">Your Cart</h3>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {/* Scrollable if many items */}
-                      {cart.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center space-x-3 p-2 bg-base-200 rounded"
-                        >
-                          {/* Used bg-base-200 for item background */}
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-12 h-12 object-contain bg-base-300 p-1 rounded"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate text-sm">
-                              {item.title}
-                            </p>
-                            <p className="text-primary font-bold text-sm">
-                              ${item.price}
-                            </p>
-                            <p className="text-base-content/70 text-xs">
-                              Qty: {item.quantity}
-                            </p>{" "}
-                            {/* Changed text-gray-500 to text-base-content/70 */}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="divider my-2 bg-base-300"></div>{" "}
-                    {/* Changed divider color */}
-                    <div className="flex justify-between items-center font-bold">
-                      <span>Total:</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Link
-                        to="/cart"
-                        className="btn btn-primary flex-1"
-                        onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
-                      >
-                        View Cart
-                      </Link>
-                      {/* Updated Checkout button to link to /checkout */}
-                      <Link
-                        to="/checkout"
-                        className="btn btn-secondary flex-1"
-                        onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
-                      >
-                        Checkout
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Empty Cart Message - Shown when dropdown is open but cart is empty */}
-              {isMiniCartOpen && cart.length === 0 && (
-                <div
-                  className="mini-cart-dropdown absolute right-0 mt-2 w-80 bg-base-100 shadow-xl z-[1] rounded-box border border-base-300"
-                  onMouseEnter={handleDropdownHover} // Keep open if hovering dropdown
-                  onMouseLeave={handleDropdownLeave} // Close when leaving dropdown
-                >
-                  <div className="p-4 text-center">
-                    <p>Your cart is empty.</p>
-                    <Link
-                      to="/products"
-                      className="btn btn-primary mt-2"
-                      onClick={() => setIsMiniCartOpen(false)} // Close dropdown on click
-                    >
-                      Browse Products
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden text-base-content hover:text-primary" // Changed text-gray-300 to text-base-content, hover:text-white to hover:text-primary
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-base-200 py-4 px-4 border-t border-base-300">
-            {/* Changed bg-gray-800 to bg-base-200, border-gray-700 to border-base-300 */}
-            <div className="space-y-3">
-              <form onSubmit={handleSearch} className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-full px-4 py-3 bg-base-300 text-base-content rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-primary" // Changed bg-gray-700 to bg-base-300, text-white to text-base-content, focus:ring-red-500 to focus:ring-primary
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </form>
-
-              <Link
-                to="/build-pc"
-                className={`flex items-center px-4 py-2 rounded-lg ${
-                  isBuildPCPage
-                    ? "bg-primary text-primary-content"
-                    : "text-base-content hover:bg-base-300"
-                }`} // Changed bg-red-500 to bg-primary, text-white to text-primary-content, text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <ComputerDesktopIcon className="h-5 w-5 mr-3" />
-                Build Your PC
-              </Link>
-              <Link
-                to="/cart"
-                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <ShoppingCartIcon className="h-5 w-5 mr-3" />
-                Your Cart ({cart.length})
-              </Link>
-              {/* Dynamic Link for Mobile */}
-              <Link
-                to={accountLinkDestination}
-                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <UserCircleIcon className="h-5 w-5 mr-3" />
-                {user ? `Account (${user.name})` : "Log In / Sign Up"}
-              </Link>
-              <Link
-                to="/products"
-                className="flex items-center px-4 py-2 text-base-content hover:bg-base-300 rounded-lg" // Changed text-gray-300 to text-base-content, hover:bg-gray-700 to hover:bg-base-300
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <CubeIcon className="h-5 w-5 mr-3" />
-                All Products
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
-    </React.Fragment>
+      <button
+        className="btn btn-secondary btn-outline w-full"
+        onClick={() => onFilterChange("reset")}
+      >
+        Reset Filters
+      </button>
+    </div>
   );
 };
 
-export default Navbar;
+export default FilterPanel;
 
 
 File: src/pages/Checkout.jsx
@@ -6906,7 +7084,7 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl mb-4">Your cart is empty.</p>
           <button
@@ -6921,12 +7099,12 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Order Summary */}
-        <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+        <div className="bg-base-100 p-6 rounded-lg shadow-lg border border-base-200">
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {cart.map((item) => (
@@ -6937,7 +7115,7 @@ const Checkout = () => {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-16 h-16 object-contain bg-base-200 p-2 rounded"
+                  className="w-16 h-16 object-contain bg-inherit p-2 rounded"
                 />
                 <div className="flex-1">
                   <h3 className="font-semibold">{item.title}</h3>
@@ -6959,13 +7137,13 @@ const Checkout = () => {
             {/* Tax and Shipping would go here if applicable */}
             <div className="flex justify-between font-bold text-lg">
               <span>Total:</span>
-              <span>DZD {total.toFixed(2)}</span>
+              <span className="text-primary">DZD {total.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
         {/* Checkout Form */}
-        <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+        <div className="bg-base-100 p-6 rounded-lg shadow-lg border border-base-200">
           <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
 
           <form onSubmit={handleSubmit}>
@@ -7075,7 +7253,9 @@ const Checkout = () => {
                   errors.deliveryService ? "select-error" : ""
                 }`}
               >
-                <option value="" disabled>Select a service</option>
+                <option value="" disabled>
+                  Select a service
+                </option>
                 <option value="service-a">Delivery Service A</option>
                 <option value="service-b">Delivery Service B</option>
                 <option value="service-c">Delivery Service C</option>
@@ -7145,14 +7325,10 @@ const Checkout = () => {
                 className="textarea textarea-bordered w-full"
                 placeholder="e.g., Delivery instructions, apartment number..."
                 rows="2"
-              >
-              </textarea>
+              ></textarea>
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-            >
+            <button type="submit" className="btn btn-primary w-full">
               Place Order
             </button>
           </form>
@@ -7165,183 +7341,296 @@ const Checkout = () => {
 export default Checkout;
 
 
-File: src/services/api.js
+File: vite.config.js
 ================================================
-// src/services/api.js
-const API_BASE_URL = "http://localhost:8080/api/v1";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// Global variable to store fetched categories (consider caching strategies in production)
-let categoriesCache = null;
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+});
 
-// Fetch categories from the API
-export const fetchCategories = async () => {
-  if (categoriesCache) {
-    return categoriesCache;
-  }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/categories`);
-    if (!response.ok) {
-      throw new Error(
-        `HTTP error fetching categories! Status: ${response.status}`,
-      );
+File: src/stores/useStore.jsx
+================================================
+import { create } from 'zustand';
+
+export const useStore = create((set) => ({
+  cart: [],
+  buildPcComponents: {},
+
+  // Cart actions
+  addToCart: (product) => set((state) => {
+    const existingItem = state.cart.find(item => item.id === product.id);
+    if (existingItem) {
+      return {
+        cart: state.cart.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      };
     }
-    const data = await response.json();
-    console.log("Raw Categories Response:", data); // Log the raw response
-    categoriesCache = data; // Cache the result
-    return data;
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    throw error;
-  }
-};
+    return { cart: [...state.cart, { ...product, quantity: 1 }] };
+  }),
 
-// Function to get category name by ID
-const getCategoryNameById = async (categoryId) => {
-  const categories = await fetchCategories();
-  const category = categories.find((cat) => cat.id === categoryId);
-  return category ? category.name : "Unknown Category"; // Fallback if ID not found
-};
+  removeFromCart: (productId) => set((state) => ({
+    cart: state.cart.filter(item => item.id !== productId)
+  })),
 
-// Transform API product to frontend product shape
-const transformProduct = async (apiProduct) => {
-  const categoryName = await getCategoryNameById(apiProduct.category_id);
+  updateQuantity: (productId, quantity) => set((state) => ({
+    cart: state.cart.map(item =>
+      item.id === productId ? { ...item, quantity } : item
+    )
+  })),
 
-  return {
-    id: apiProduct.id,
-    title: apiProduct.name, // Map 'name' to 'title'
-    description: apiProduct.spec_highlights?.type || apiProduct.description ||
-      "", // Use spec highlight, or description, or empty string as fallback
-    price: apiProduct.price_cents / 100, // Convert cents to dollars
-    image: apiProduct.image_urls[0], // Take the first image URL
-    category: categoryName, // Use the resolved category name
-    brand: apiProduct.brand,
-    stock: apiProduct.stock_quantity,
-    status: apiProduct.status,
-    // Include other fields if needed, e.g., spec_highlights, created_at, updated_at
+  clearCart: () => set({ cart: [] }),
+
+  // Build PC actions
+  setPcComponent: (category, component) => set((state) => ({
+    buildPcComponents: {
+      ...state.buildPcComponents,
+      [category]: component
+    }
+  }))
+}));
+
+
+File: src/pages/ProductDetail.jsx
+================================================
+// src/pages/ProductDetail.jsx
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useCart } from "../contexts/CartContext";
+import { fetchProductById } from "../services/api"; // Import the new API function
+import { toast } from "sonner";
+
+const ProductDetail = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state for detail
+  const [error, setError] = useState(null); // Add error state for detail
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchProductById(id); // Fetch from real API
+        setProduct(data);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setError(
+          error.message ||
+            "Failed to load product details. Please try again later.",
+        ); // Set error message
+        toast.error("Failed to load product details. Please try again later."); // Show toast
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProduct();
+  }, [id]);
+
+  const handleAddToCart = async () => {
+    if (product) {
+      try {
+        await addToCart({ ...product, quantity });
+        toast.success(`"${product.title}" added to cart!`); // Show success toast
+      } catch (error) {
+        console.error("Failed to add item to cart:", error);
+        toast.error("Failed to add item to cart. Please try again."); // Show error toast
+      }
+    }
   };
-};
 
-export const fetchProducts = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const responseData = await response.json(); // Get the full response object
-    console.log("Raw Products Response:", responseData); // Log the raw response
-
-    // Extract the 'data' array from the response object
-    const dataArray = responseData.data;
-
-    // Check if the extracted data is an array
-    if (!Array.isArray(dataArray)) {
-      throw new Error(
-        'Expected an array of products inside the "data" property of the response.',
-      );
-    }
-
-    // Transform each product in the extracted array
-    const transformedProducts = await Promise.all(
-      dataArray.map(async (apiProduct) => await transformProduct(apiProduct)),
+  if (loading) {
+    // Show loading state for product detail
+    return (
+      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+        <div className="skeleton h-96 w-full mb-6 bg-base-100"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <div className="skeleton h-8 w-3/4 mb-4 bg-base-100"></div>
+            <div className="skeleton h-4 w-full mb-2 bg-base-100"></div>
+            <div className="skeleton h-4 w-5/6 mb-6 bg-base-100"></div>
+            <div className="skeleton h-12 w-full bg-base-100"></div>
+          </div>
+          <div>
+            <div className="skeleton h-64 w-full bg-base-100"></div>
+          </div>
+        </div>
+      </div>
     );
-
-    return transformedProducts;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw error; // Re-throw to be handled by callers
   }
-};
-
-// Update fetchProductById to also use the async transform
-export const fetchProductById = async (id) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const apiProduct = await response.json();
-    console.log("Raw Single Product Response:", apiProduct); // Log the raw response
-    return await transformProduct(apiProduct); // Transform the single product asynchronously
-  } catch (error) {
-    console.error(`Error fetching product with id ${id}:`, error);
-    throw error;
+  if (error) {
+    // Show error state for product detail
+    return (
+      <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl mb-4 text-error">
+            Error loading product: {error}
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() => window.location.reload()} // Simple retry mechanism
+          >
+            Retry
+          </button>
+          <Link to="/products" className="btn btn-ghost ml-2">
+            Back to Products
+          </Link>
+        </div>
+      </div>
+    );
   }
-};
-
-
-File: public/vite.svg
-================================================
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
-
-File: src/components/ThemeSwitcher.jsx
-================================================
-// src/components/ThemeSwitcher.jsx
-import React, { useEffect, useRef, useState } from "react";
-
-const ThemeSwitcher = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const checkboxRef = useRef(null);
-
-  const setThemeAndBody = (darkMode) => {
-    const themeName = darkMode ? "coffee" : "winter";
-    setIsDarkMode(darkMode);
-    document.documentElement.setAttribute("data-theme", themeName);
-  };
-
-  // Initialize theme and set checkbox ref
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      const initialIsDarkMode = savedTheme === "coffee";
-      setThemeAndBody(initialIsDarkMode);
-      // Ensure the checkbox reflects the loaded state
-      if (checkboxRef.current) {
-        checkboxRef.current.checked = initialIsDarkMode;
-      }
-    } else {
-      const prefersDark =
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setThemeAndBody(prefersDark);
-      if (checkboxRef.current) {
-        checkboxRef.current.checked = prefersDark;
-      }
-    }
-  }, []);
-
-  // Sync checkbox ref with state changes (if needed for daisyUI to pick up)
-  useEffect(() => {
-    if (checkboxRef.current) {
-      checkboxRef.current.checked = isDarkMode;
-    }
-  }, [isDarkMode]);
-
-  const toggleTheme = () => {
-    const newIsDarkMode = !isDarkMode;
-    setThemeAndBody(newIsDarkMode);
-    localStorage.setItem("theme", newIsDarkMode ? "coffee" : "winter");
-  };
+  if (!product) {
+    // Fallback if product state is somehow null after loading
+    return (
+      <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+        <p className="text-center text-error">Product not found.</p>
+        <Link to="/products" className="btn btn-primary">
+          Back to Products
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="btn btn-sm btn-ghost bg-base-100" // Ensure text is visible on navbar
-      aria-label="Toggle theme"
-    >
-      {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-    </button>
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+      {/* Updated Link with btn-sm */}
+      <Link to="/products" className="btn btn-sm btn-ghost mb-6">
+        <ArrowLeftIcon className="h-4 w-4 mr-2" />
+        Back to Products
+      </Link>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Image Gallery */}
+        <div>
+          <div className="aspect-square mb-4 bg-base-100 rounded-lg p-4">
+            <img
+              src={product.image}
+              alt={product.title}
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex space-x-2">
+            {[product.image].map((img, index) => (
+              <button
+                key={index}
+                className={`w-16 h-16 border rounded ${
+                  selectedImage === index
+                    ? "border-primary"
+                    : "border-transparent"
+                } bg-base-100`}
+                onClick={() => setSelectedImage(index)}
+              >
+                <img
+                  src={img}
+                  alt=""
+                  className="w-full h-full object-cover rounded"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div>
+          <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl font-bold text-primary">
+              DZD {product.price}
+            </span>
+            {/* Removed discount calculation if not in API */}
+            {/* <span className="line-through text-gray-500">${(product.price * 1.2).toFixed(2)}</span> */}
+            {/* <span className="badge badge-success bg-green-600 text-white">20% OFF</span> */}
+          </div>
+
+          <div className="mb-6">
+            <p className="text-gray-600 mb-4">{product.description}</p>
+
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Specifications:</h3>
+              <table className="table bg-base-100">
+                <tbody>
+                  <tr>
+                    <td className="font-bold">Category</td>
+                    <td>{product.category}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold">Brand</td>
+                    <td>{product.brand}</td>
+                  </tr>
+                  {/* Add more specs from product.spec_highlights if needed */}
+                  <tr>
+                    <td className="font-bold">Stock Quantity</td>
+                    <td
+                      className={
+                        product.stock > 0 ? "text-success" : "text-error"
+                      }
+                    >
+                      {product.stock > 0
+                        ? `${product.stock} In Stock`
+                        : "Out of Stock"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center">
+              <button
+                className="btn btn-sm"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                -
+              </button>
+              <span className="mx-2">{quantity}</span>
+              <button
+                className="btn btn-sm"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                +
+              </button>
+            </div>
+            <button
+              className="btn btn-primary flex-1"
+              onClick={handleAddToCart}
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Related Products */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Related products would go here */}
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default ThemeSwitcher;
+export default ProductDetail;
 
 
 File: src/pages/Auth.jsx
 ================================================
-// src/pages/Auth.jsx
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import heroBackgroundImage from "../assets/heroBackgroundImage.png";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
@@ -7396,8 +7685,16 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
-      <div className="card bg-base-100 w-full max-w-md shadow-xl">
+    <div
+      className="relative w-full px-4 py-8 min-h-screen flex items-center justify-center"
+      style={{
+        backgroundImage: `url(${heroBackgroundImage})`, // Use the imported variable
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute w-full min-h-screen bg-base-300/50" />
+      <div className="card bg-base-100 w-full max-w-md shadow-xl border border-base-200">
         <div className="card-body">
           <h2 className="card-title text-2xl mb-4">
             {isLogin ? "Log In" : "Sign Up"}
@@ -7458,8 +7755,7 @@ const AuthPage = () => {
 
           <div className="text-center">
             <p className="text-sm">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-              {" "}
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="link link-primary"
@@ -7477,80 +7773,346 @@ const AuthPage = () => {
 export default AuthPage;
 
 
-File: src/contexts/AuthContext.jsx
+File: src/services/api.js
 ================================================
-import React, { createContext, useContext, useEffect, useState } from "react";
+const mockProducts = [
+  {
+    id: "1",
+    title: "Intel Core i9-13900K",
+    description: "High-performance desktop processor",
+    price: 799.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "CPUs",
+    brand: "Intel",
+    stock: 15,
+    status: "active",
+  },
+  {
+    id: "2",
+    title: "AMD Ryzen 9 7950X",
+    description: "16-core desktop processor",
+    price: 699.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "CPUs",
+    brand: "AMD",
+    stock: 8,
+    status: "active",
+  },
+  {
+    id: "3",
+    title: "NVIDIA GeForce RTX 4090",
+    description: "High-end gaming graphics card",
+    price: 1599.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "GPUs",
+    brand: "NVIDIA",
+    stock: 5,
+    status: "active",
+  },
+  {
+    id: "4",
+    title: "Corsair Vengeance LPX 32GB",
+    description: "DDR4 RAM kit",
+    price: 149.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "RAM",
+    brand: "Corsair",
+    stock: 50,
+    status: "active",
+  },
+  {
+    id: "5",
+    title: "Samsung 980 PRO 1TB",
+    description: "NVMe M.2 SSD",
+    price: 129.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "Storage",
+    brand: "Samsung",
+    stock: 30,
+    status: "active",
+  },
+  {
+    id: "6",
+    title: "ASUS ROG Strix Z790-E",
+    description: "ATX motherboard for Intel CPUs",
+    price: 349.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "Motherboards",
+    brand: "ASUS",
+    stock: 12,
+    status: "active",
+  },
+  {
+    id: "7",
+    title: "Fractal Design Torrent",
+    description: "Mid-tower ATX case",
+    price: 199.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "Cases",
+    brand: "Fractal Design",
+    stock: 20,
+    status: "active",
+  },
+  {
+    id: "8",
+    title: "Corsair RM850x (2021)",
+    description: "80+ Gold certified power supply",
+    price: 129.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "PSUs",
+    brand: "Corsair",
+    stock: 25,
+    status: "active",
+  },
+  {
+    id: "9",
+    title: "Logitech MX Master 3S",
+    description: "Wireless mouse",
+    price: 119.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "Peripherals",
+    brand: "Logitech",
+    stock: 22,
+    status: "active",
+  },
+  {
+    id: "10",
+    title: "ASRock Phantom Gaming D",
+    description: "AMD AM4 motherboard",
+    price: 119.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "Motherboards",
+    brand: "ASRock",
+    stock: 18,
+    status: "active",
+  },
+  {
+    id: "11",
+    title: "G.SKILL Trident Z5 RGB 64GB",
+    description: "DDR5 RAM kit",
+    price: 399.99,
+    image:
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200",
+    category: "RAM",
+    brand: "G.SKILL",
+    stock: 7,
+    status: "active",
+  },
+];
 
-const AuthContext = createContext();
+const mockCategories = [
+  { id: "cpus", name: "CPUs", slug: "cpus", type: "component" },
+  { id: "gpus", name: "GPUs", slug: "gpus", type: "component" },
+  { id: "ram", name: "RAM", slug: "ram", type: "component" },
+  { id: "storage", name: "Storage", slug: "storage", type: "component" },
+  {
+    id: "motherboards",
+    name: "Motherboards",
+    slug: "motherboards",
+    type: "component",
+  },
+  { id: "cases", name: "Cases", slug: "cases", type: "component" },
+  { id: "psus", name: "PSUs", slug: "psus", type: "component" },
+  {
+    id: "peripherals",
+    name: "Peripherals",
+    slug: "peripherals",
+    type: "accessory",
+  },
+];
 
-// Simple mock user data for demonstration
-const MOCK_USER = {
-  id: 1,
-  name: "John Doe",
-  email: "john.doe@example.com",
-  joinDate: "2024-01-01",
+// Mock user orders data
+const mockUserOrders = [
+  {
+    id: "12345",
+    createdAt: "2026-02-01T10:00:00Z",
+    status: "completed",
+    totalAmount: 2499.97,
+    subtotal: 2300.0,
+    taxAmount: 149.97,
+    shippingCost: 50.0,
+    items: [
+      {
+        productId: "1",
+        name: "Intel Core i9-13900K",
+        price: 799.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=i9-13900K",
+      },
+      {
+        productId: "3",
+        name: "NVIDIA GeForce RTX 4090",
+        price: 1599.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=RTX+4090",
+      },
+      {
+        productId: "4",
+        name: "Corsair Vengeance LPX 32GB",
+        price: 149.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+      },
+    ],
+    shippingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+    billingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+  },
+  {
+    id: "12344",
+    createdAt: "2026-01-28T15:30:00Z",
+    status: "shipped",
+    totalAmount: 89.99,
+    subtotal: 79.99,
+    taxAmount: 5.0,
+    shippingCost: 5.0,
+    items: [
+      {
+        productId: "9",
+        name: "Logitech MX Master 3S",
+        price: 119.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=MX+Master+3S",
+      },
+    ],
+    shippingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+    billingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+  },
+  {
+    id: "12343",
+    createdAt: "2026-01-25T09:15:00Z",
+    status: "processing",
+    totalAmount: 1200.0,
+    subtotal: 1100.0,
+    taxAmount: 70.0,
+    shippingCost: 30.0,
+    items: [
+      {
+        productId: "2",
+        name: "AMD Ryzen 9 7950X",
+        price: 699.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=Ryzen+9+7950X",
+      },
+      {
+        productId: "6",
+        name: "ASUS ROG Strix Z790-E",
+        price: 349.99,
+        quantity: 1,
+        image: "https://placehold.co/100x100?text=ROG+Strix+Z790-E",
+      },
+    ],
+    shippingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+    billingAddress: {
+      firstName: "John",
+      lastName: "Doe",
+      address: "123 Main St",
+      city: "Algiers",
+      state: "Algeria",
+      zipCode: "16000",
+      country: "Algeria",
+    },
+  },
+];
+
+// Fetch categories from mock data
+export const fetchCategories = async () => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  return mockCategories;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // Initially null (not logged in)
-  const [isLoading, setIsLoading] = useState(true); // To handle initial loading state
-
-  // Simulate checking for a stored session/token on app start
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      // Simulate an API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Check for a mock token in localStorage (or any other condition)
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        // If token exists, assume user is logged in and set user data
-        setUser(MOCK_USER);
-      } else {
-        // Otherwise, user is not logged in
-        setUser(null);
-      }
-      setIsLoading(false); // Finished checking
-    };
-
-    checkAuthStatus();
-  }, []);
-
-  const login = (credentials) => {
-    // Simulate login process
-    console.log("Login attempt with:", credentials);
-    // For demo, just set the user and save a mock token
-    setUser(MOCK_USER);
-    localStorage.setItem("authToken", "mock-token-for-demo");
-  };
-
-  const logout = () => {
-    // Simulate logout process
-    setUser(null);
-    localStorage.removeItem("authToken");
-  };
-
-  // Value object passed to consumers
-  const value = {
-    user,
-    login,
-    logout,
-    isLoading, // Expose loading state
-    isAuthenticated: !!user, // Convenient boolean check
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+// Fetch products from mock data
+export const fetchProducts = async () => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return mockProducts;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+// Fetch a single product by ID from mock data
+export const fetchProductById = async (id) => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const product = mockProducts.find((p) => p.id === id);
+  if (!product) {
+    throw new Error(`Product with id ${id} not found.`);
   }
-  return context;
+  return product;
 };
+
+// --- Mock functions for user-specific data ---
+
+// Fetch orders for the current user (mock)
+export const fetchUserOrders = async (userId) => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  // In a real app, you'd filter by userId here if multiple users existed
+  return mockUserOrders;
+};
+
+// Fetch a specific order by its ID (mock)
+export const fetchOrderById = async (orderId) => {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const order = mockUserOrders.find((o) => o.id === orderId);
+  if (!order) {
+    throw new Error(`Order with id ${orderId} not found.`);
+  }
+  return order;
+};
+
+// --- End of mock functions ---
 
 
 Summary:
-Total files: 31
-Total size: 261806 bytes
+Total files: 32
+Total size: 276718 bytes

@@ -13,7 +13,9 @@ const Account = () => {
       <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl mb-4">You are not logged in.</p>
-          <Link to="/auth" className="btn btn-primary">Go to Login/Signup</Link>
+          <Link to="/auth" className="btn btn-primary">
+            Go to Login/Signup
+          </Link>
         </div>
       </div>
     );
@@ -37,18 +39,20 @@ const Account = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar Navigation */}
         <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-lg">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
             <div className="card-body">
               <h2 className="card-title text-lg mb-4">Account Menu</h2>
               <ul className="menu bg-base-100 w-full rounded-box">
                 <li>
-                  <Link to="/account" className="active">Dashboard</Link>
+                  <Link to="/account" className="active">
+                    Dashboard
+                  </Link>
                 </li>
                 <li>
                   <Link to="/account/orders">My Orders</Link>
@@ -57,10 +61,7 @@ const Account = () => {
                   <Link to="/account/settings">Account Settings</Link>
                 </li>
                 <li>
-                  <button
-                    onClick={logout}
-                    className="btn w-full text-left"
-                  >
+                  <button onClick={logout} className="btn w-full text-left">
                     Log Out
                   </button>
                 </li>{" "}
@@ -73,7 +74,7 @@ const Account = () => {
         {/* Main Content Area */}
         <div className="lg:col-span-3">
           {/* Welcome Section */}
-          <div className="card bg-base-100 shadow-lg mb-6">
+          <div className="card bg-base-100 shadow-lg mb-6 border border-base-200">
             <div className="card-body">
               <h2 className="card-title">Welcome, {user.name}!</h2>
               <p className="text-gray-600">Member since {user.joinDate}</p>
@@ -86,18 +87,18 @@ const Account = () => {
           </div>
 
           {/* Recent Orders */}
-          <div className="card bg-base-100 shadow-lg mb-6">
+          <div className="card bg-base-100 shadow-lg mb-6 border border-base-200">
             <div className="card-body">
               <h3 className="card-title text-lg">Recent Orders</h3>
               <div className="overflow-x-auto">
-                <table className="table table-zebra">
+                <table className="table">
                   <thead>
                     <tr>
-                      <th>Order #</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Total</th>
-                      <th>Actions</th>
+                      <th className="font-bold">Order #</th>
+                      <th className="font-bold">Date</th>
+                      <th className="font-bold">Status</th>
+                      <th className="font-bold">Total</th>
+                      <th className="font-bold">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -111,8 +112,8 @@ const Account = () => {
                               order.status === "Delivered"
                                 ? "badge-success"
                                 : order.status === "Shipped"
-                                ? "badge-info"
-                                : "badge-warning"
+                                  ? "badge-info"
+                                  : "badge-warning"
                             }`}
                           >
                             {order.status}

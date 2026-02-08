@@ -36,7 +36,7 @@ function App() {
             <div className="border-t border-base-300 my-8"></div>
             <Footer />
           </div>
-          <Toaster position="top-right" richColors />
+          <Toaster position="top-left" richColors />
         </Router>
       </CartProvider>
     </AuthProvider>

@@ -1,10 +1,17 @@
+// src/services/api.js
+// Mock data
 const mockProducts = [
   {
     id: "1",
-    title: "Intel Core i9-13900K",
+    title: "Intel Core i9-13900K BRAND NEW OVERCLOCKED WITH A FREE BURGER",
     description: "High-performance desktop processor",
-    price: 799.99,
-    image: "https://placehold.co/300x300?text=Intel+Core+i9-13900K",
+    price: 79999,
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=i9-13900K+Back",
+      "https://placehold.co/300x300?text=i9-13900K+Top",
+      "https://placehold.co/300x300?text=i9-13900K+Box",
+    ],
     category: "CPUs",
     brand: "Intel",
     stock: 15,
@@ -15,7 +22,12 @@ const mockProducts = [
     title: "AMD Ryzen 9 7950X",
     description: "16-core desktop processor",
     price: 699.99,
-    image: "https://placehold.co/300x300?text=AMD+Ryzen+9+7950X",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=Ryzen+9+7950X+Back",
+      "https://placehold.co/300x300?text=Ryzen+9+7950X+Top",
+      "https://placehold.co/300x300?text=Ryzen+9+7950X+Box",
+    ],
     category: "CPUs",
     brand: "AMD",
     stock: 8,
@@ -26,7 +38,12 @@ const mockProducts = [
     title: "NVIDIA GeForce RTX 4090",
     description: "High-end gaming graphics card",
     price: 1599.99,
-    image: "https://placehold.co/300x300?text=NVIDIA+RTX+4090",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=RTX+4090+Back",
+      "https://placehold.co/300x300?text=RTX+4090+Side",
+      "https://placehold.co/300x300?text=RTX+4090+Box",
+    ],
     category: "GPUs",
     brand: "NVIDIA",
     stock: 5,
@@ -37,7 +54,12 @@ const mockProducts = [
     title: "Corsair Vengeance LPX 32GB",
     description: "DDR4 RAM kit",
     price: 149.99,
-    image: "https://placehold.co/300x300?text=Corsair+Vengeance+32GB",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=Vengeance+32GB+Back",
+      "https://placehold.co/300x300?text=Vengeance+32GB+Specs",
+      "https://placehold.co/300x300?text=Vengeance+32GB+Box",
+    ],
     category: "RAM",
     brand: "Corsair",
     stock: 50,
@@ -48,7 +70,12 @@ const mockProducts = [
     title: "Samsung 980 PRO 1TB",
     description: "NVMe M.2 SSD",
     price: 129.99,
-    image: "https://placehold.co/300x300?text=Samsung+980+PRO+1TB",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=980+PRO+1TB+Back",
+      "https://placehold.co/300x300?text=980+PRO+1TB+Specs",
+      "https://placehold.co/300x300?text=980+PRO+1TB+Box",
+    ],
     category: "Storage",
     brand: "Samsung",
     stock: 30,
@@ -59,7 +86,12 @@ const mockProducts = [
     title: "ASUS ROG Strix Z790-E",
     description: "ATX motherboard for Intel CPUs",
     price: 349.99,
-    image: "https://placehold.co/300x300?text=ASUS+ROG+Strix+Z790-E",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Back",
+      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Top",
+      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Box",
+    ],
     category: "Motherboards",
     brand: "ASUS",
     stock: 12,
@@ -70,7 +102,12 @@ const mockProducts = [
     title: "Fractal Design Torrent",
     description: "Mid-tower ATX case",
     price: 199.99,
-    image: "https://placehold.co/300x300?text=Fractal+Design+Torrent",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=Torrent+Back",
+      "https://placehold.co/300x300?text=Torrent+Interior",
+      "https://placehold.co/300x300?text=Torrent+Box",
+    ],
     category: "Cases",
     brand: "Fractal Design",
     stock: 20,
@@ -81,7 +118,12 @@ const mockProducts = [
     title: "Corsair RM850x (2021)",
     description: "80+ Gold certified power supply",
     price: 129.99,
-    image: "https://placehold.co/300x300?text=Corsair+RM850x",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=RM850x+Back",
+      "https://placehold.co/300x300?text=RM850x+Specs",
+      "https://placehold.co/300x300?text=RM850x+Box",
+    ],
     category: "PSUs",
     brand: "Corsair",
     stock: 25,
@@ -92,7 +134,12 @@ const mockProducts = [
     title: "Logitech MX Master 3S",
     description: "Wireless mouse",
     price: 119.99,
-    image: "https://placehold.co/300x300?text=Logitech+MX+Master+3S",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=MX+Master+3S+Back",
+      "https://placehold.co/300x300?text=MX+Master+3S+Side",
+      "https://placehold.co/300x300?text=MX+Master+3S+Box",
+    ],
     category: "Peripherals",
     brand: "Logitech",
     stock: 22,
@@ -103,7 +150,12 @@ const mockProducts = [
     title: "ASRock Phantom Gaming D",
     description: "AMD AM4 motherboard",
     price: 119.99,
-    image: "https://placehold.co/300x300?text=ASRock+Phantom+Gaming+D",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=Phantom+Gaming+D+Back",
+      "https://placehold.co/300x300?text=Phantom+Gaming+D+Top",
+      "https://placehold.co/300x300?text=Phantom+Gaming+D+Box",
+    ],
     category: "Motherboards",
     brand: "ASRock",
     stock: 18,
@@ -114,7 +166,12 @@ const mockProducts = [
     title: "G.SKILL Trident Z5 RGB 64GB",
     description: "DDR5 RAM kit",
     price: 399.99,
-    image: "https://placehold.co/300x300?text=G.SKILL+Trident+Z5+64GB",
+    image_urls: [ // Define the image_urls array directly in mock data
+      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200", // Main/First image
+      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Back",
+      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Specs",
+      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Box",
+    ],
     category: "RAM",
     brand: "G.SKILL",
     stock: 7,
@@ -159,21 +216,21 @@ const mockUserOrders = [
         name: "Intel Core i9-13900K",
         price: 799.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=i9-13900K",
+        image_urls: ["https://placehold.co/100x100?text=i9-13900K"], // Example for order item
       },
       {
         productId: "3",
         name: "NVIDIA GeForce RTX 4090",
-        price: 1599.99,
+        price: 599.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=RTX+4090",
+        image_urls: ["https://placehold.co/100x100?text=RTX+4090"],
       },
       {
         productId: "4",
         name: "Corsair Vengeance LPX 32GB",
         price: 149.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image_urls: ["https://placehold.co/100x100?text=Vengeance+32GB"],
       },
     ],
     shippingAddress: {
@@ -209,7 +266,7 @@ const mockUserOrders = [
         name: "Logitech MX Master 3S",
         price: 119.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=MX+Master+3S",
+        image_urls: ["https://placehold.co/100x100?text=MX+Master+3S"],
       },
     ],
     shippingAddress: {
@@ -245,14 +302,14 @@ const mockUserOrders = [
         name: "AMD Ryzen 9 7950X",
         price: 699.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=Ryzen+9+7950X",
+        image_urls: ["https://placehold.co/100x100?text=Ryzen+9+7950X"],
       },
       {
         productId: "6",
         name: "ASUS ROG Strix Z790-E",
         price: 349.99,
         quantity: 1,
-        image: "https://placehold.co/100x100?text=ROG+Strix+Z790-E",
+        image_urls: ["https://placehold.co/100x100?text=ROG+Strix+Z790-E"],
       },
     ],
     shippingAddress: {
@@ -298,6 +355,7 @@ export const fetchProductById = async (id) => {
   if (!product) {
     throw new Error(`Product with id ${id} not found.`);
   }
+  // Return the product object as it exists in the mock data (containing image_urls)
   return product;
 };
 

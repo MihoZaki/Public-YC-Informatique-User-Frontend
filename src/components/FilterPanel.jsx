@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { fetchCategories } from "../services/api"; // Import fetchCategories
 
-const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories prop as we fetch them here
+const FilterPanel = ({ filters, onFilterChange }) => {
+  // Removed categories prop as we fetch them here
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true); // Optional loading state for categories
 
@@ -24,7 +25,8 @@ const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories pro
     loadCategories();
   }, []);
 
-  if (loading) { // Optional: Show loading state for categories
+  if (loading) {
+    // Optional: Show loading state for categories
     return (
       <div className="bg-base-100 p-4 rounded-lg shadow-md">
         <div className="skeleton h-4 w-1/4 mb-4"></div>
@@ -37,7 +39,7 @@ const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories pro
   }
 
   return (
-    <div className="bg-base-100 p-4 rounded-lg shadow-md">
+    <div className="bg-base-100 p-4 rounded-lg shadow-md border border-neutral-content">
       <h3 className="font-bold text-lg mb-4 ">Filters</h3>
 
       {/* Category Filter - Updated to use fetched categories */}
@@ -46,18 +48,18 @@ const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories pro
           <span className="label-text ">Category</span>
         </label>
         <select
-          className="select select-bordered w-full bg-primary-content"
+          className="select select-bordered w-full bg-base-100"
           value={filters.category}
           onChange={(e) => onFilterChange("category", e.target.value)}
         >
-          <option value="" className="bg-primary-content">
+          <option value="" className="bg-base-100">
             All Categories
           </option>
           {categories.map((category) => (
             <option
               key={category.id}
               value={category.name}
-              className="bg-primary-content"
+              className="bg-base-100"
             >
               {category.name}
             </option>
@@ -74,14 +76,14 @@ const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories pro
           <input
             type="number"
             placeholder="Min"
-            className="input input-bordered bg-primary-content  border-gray-600"
+            className="input input-bordered bg-base-100  border-gray-600"
             value={filters.minPrice}
             onChange={(e) => onFilterChange("minPrice", e.target.value)}
           />
           <input
             type="number"
             placeholder="Max"
-            className="input input-bordered bg-primary-content  border-gray-600"
+            className="input input-bordered bg-base-100  border-gray-600"
             value={filters.maxPrice}
             onChange={(e) => onFilterChange("maxPrice", e.target.value)}
           />
@@ -94,31 +96,33 @@ const FilterPanel = ({ filters, onFilterChange }) => { // Removed categories pro
           <span className="label-text ">Brand</span>
         </label>
         <select
-          className="select select-bordered w-full bg-primary-content  border-gray-600"
+          className="select select-bordered w-full bg-base-100  border-gray-600"
           value={filters.brand}
           onChange={(e) => onFilterChange("brand", e.target.value)}
         >
-          <option value="" className="bg-primary-content ">
+          <option value="" className="bg-base-100">
             All Brands
           </option>
-          <option value="Intel" className="bg-primary-content ">
+          <option value="Intel" className="bg-base-100">
             Intel
           </option>
-          <option value="AMD" className="bg-primary-content ">AMD</option>
-          <option value="NVIDIA" className="bg-primary-content ">
+          <option value="AMD" className="bg-base-100">
+            AMD
+          </option>
+          <option value="NVIDIA" className="bg-base-100">
             NVIDIA
           </option>
-          <option value="Samsung" className="bg-primary-content ">
+          <option value="Samsung" className="bg-base-100">
             Samsung
           </option>
-          <option value="Corsair" className="bg-primary-content ">
+          <option value="Corsair" className="bg-base-100">
             Corsair
           </option>
         </select>
       </div>
 
       <button
-        className="btn btn-secondary text-primary bg-primary-content hover:bg-primary-content/70 w-full"
+        className="btn btn-secondary btn-outline w-full"
         onClick={() => onFilterChange("reset")}
       >
         Reset Filters

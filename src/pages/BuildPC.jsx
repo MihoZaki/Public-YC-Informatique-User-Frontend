@@ -150,13 +150,13 @@ const BuildPC = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-base-200 min-h-screen">
+    <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Build Your PC</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Steps Navigation */}
         <div className="lg:col-span-1">
-          <div className="card bg-base-100 shadow-lg">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
             <div className="card-body">
               <h3 className="font-bold text-lg mb-4">Build Progress</h3>
               <div className="steps steps-vertical">
@@ -178,7 +178,7 @@ const BuildPC = () => {
 
         {/* Component Selection */}
         <div className="lg:col-span-2">
-          <div className="card bg-base-100 shadow-lg">
+          <div className="card bg-base-100 shadow-lg border border-base-200">
             <div className="card-body">
               <h2 className="card-title text-2xl mb-6">
                 {steps[currentStep]?.title}
@@ -191,24 +191,31 @@ const BuildPC = () => {
                       key={component.id}
                       className={`card bg-base-200 cursor-pointer ${
                         buildPcComponents[steps[currentStep]?.id]?.id ===
-                            component.id
+                        component.id
                           ? "ring-2 ring-primary"
                           : ""
                       }`}
                       onClick={() =>
-                        setPcComponent(steps[currentStep].id, component)}
+                        setPcComponent(steps[currentStep].id, component)
+                      }
                     >
                       <div className="card-body">
-                        <h3 className="card-title">{component.name}</h3>
+                        <h3 className="card-title font-semibold">
+                          {component.name}
+                        </h3>
                         <p className="text-lg font-bold text-primary">
                           DZD {component.price}
                         </p>
                         <div className="text-sm opacity-75">
-                          {Object.entries(component).filter(([key]) =>
-                            !["id", "name", "price"].includes(key)
-                          ).map(([key, value]) => (
-                            <div key={key}>{key}: {value}</div>
-                          ))}
+                          {Object.entries(component)
+                            .filter(
+                              ([key]) => !["id", "name", "price"].includes(key),
+                            )
+                            .map(([key, value]) => (
+                              <div key={key}>
+                                {key}: {value}
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </div>
@@ -228,7 +235,8 @@ const BuildPC = () => {
                 <button
                   className="btn btn-primary"
                   onClick={() =>
-                    setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                    setCurrentStep(Math.min(steps.length - 1, currentStep + 1))
+                  }
                   disabled={!buildPcComponents[steps[currentStep]?.id]}
                 >
                   Next
@@ -238,23 +246,25 @@ const BuildPC = () => {
           </div>
 
           {/* Summary */}
-          <div className="card bg-base-100 shadow-lg mt-6">
+          <div className="card bg-base-100 shadow-lg mt-6 border border-base-200">
             <div className="card-body">
               <h3 className="card-title">Current Build</h3>
               <div className="space-y-2">
-                {Object.entries(buildPcComponents).map((
-                  [category, component],
-                ) => (
-                  <div key={category} className="flex justify-between">
-                    <span>{category.toUpperCase()}:</span>
-                    <span>{component?.name}</span>
-                  </div>
-                ))}
+                {Object.entries(buildPcComponents).map(
+                  ([category, component]) => (
+                    <div key={category} className="flex justify-between">
+                      <span className="font-medium text-base-content">
+                        {category.toUpperCase()}:
+                      </span>
+                      <span className="text-sm">{component?.name}</span>
+                    </div>
+                  ),
+                )}
               </div>
               <div className="divider"></div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total:</span>
-                <span>DZD {selectedTotal}</span>
+                <span className="text-primary">DZD {selectedTotal}</span>
               </div>
             </div>
           </div>

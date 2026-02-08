@@ -112,7 +112,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section - With Imported Background Image */}
       <section
-        className="hero min-h-96 text-base-content"
+        className="hero min-h-[550px] text-base-content"
         style={{
           backgroundImage: `url(${heroBackgroundImage})`, // Use the imported variable
           backgroundSize: "cover",
@@ -129,9 +129,14 @@ const Home = () => {
             <p className="text-xl mb-8 text-base-content/80">
               Your trusted partner for all your tech needs.
             </p>
-            <Link to="/products" className="btn btn-primary">
-              Shop Now
-            </Link>
+            <div className=" w-full flex flex-row items-center justify-center gap-4">
+              <Link to="/products" className="btn btn-secondary">
+                Shop Now
+              </Link>
+              <Link to="/build-pc" className="btn btn-primary">
+                Build Your PC
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -139,7 +144,7 @@ const Home = () => {
       {/* Categories Section — Image with Name Button in Corner */}
       <section className="py-12 bg-base-100">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
+          <h2 className="text-3xl font-bold my-12 text-center">
             Shop by Category
           </h2>
 
@@ -149,7 +154,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[0].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[0].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[0].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-2 lg:row-span-2 flex flex-col" // Add flex properties to the link
             >
@@ -159,14 +166,13 @@ const Home = () => {
                   alt={hardcodedCategories[0].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[0].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-6xl font-bold">
+                  {hardcodedCategories[0].name}
+                </p>
               </div>
             </Link>
 
@@ -175,7 +181,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[1].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[1].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[1].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -185,14 +193,13 @@ const Home = () => {
                   alt={hardcodedCategories[1].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[1].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[1].name}
+                </p>
               </div>
             </Link>
 
@@ -200,7 +207,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[2].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[2].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[2].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -210,14 +219,13 @@ const Home = () => {
                   alt={hardcodedCategories[2].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[2].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[2].name}
+                </p>
               </div>
             </Link>
 
@@ -225,7 +233,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[3].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[3].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[3].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -235,14 +245,13 @@ const Home = () => {
                   alt={hardcodedCategories[3].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[3].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[3].name}
+                </p>
               </div>
             </Link>
 
@@ -250,7 +259,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[4].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[4].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[4].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -260,14 +271,13 @@ const Home = () => {
                   alt={hardcodedCategories[4].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[4].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[4].name}
+                </p>
               </div>
             </Link>
 
@@ -275,7 +285,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[5].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[5].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[5].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -285,14 +297,13 @@ const Home = () => {
                   alt={hardcodedCategories[5].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[5].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[5].name}
+                </p>
               </div>
             </Link>
 
@@ -300,7 +311,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[6].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[6].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[6].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-1 lg:row-span-1"
             >
@@ -310,14 +323,13 @@ const Home = () => {
                   alt={hardcodedCategories[6].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[6].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[6].name}
+                </p>
               </div>
             </Link>
 
@@ -325,7 +337,9 @@ const Home = () => {
             <Link
               key={hardcodedCategories[7].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[7].filter.toLowerCase())
+                encodeURIComponent(
+                  hardcodedCategories[7].filter.toLowerCase(),
+                )
               }`}
               className="lg:col-span-2 lg:row-span-1"
             >
@@ -335,23 +349,22 @@ const Home = () => {
                   alt={hardcodedCategories[7].name}
                   className="w-full h-full object-cover"
                 />
-                {/* Name Button in Top-Left Corner */}
-                <button className="btn btn-primary absolute top-4 left-4 z-10 text-white">
-                  {hardcodedCategories[7].name}
-                </button>
                 {/* Shop Now Button Overlay (Center) */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <span className="btn btn-secondary text-white">Shop Now</span>
+                  <span className="btn btn-primary text-white">Shop Now</span>
                 </div>
+                <p className="absolute bottom-4 left-4 text-white px-2 py-1 rounded-md text-3xl font-bold">
+                  {hardcodedCategories[7].name}
+                </p>
               </div>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="py-12 px-4 bg-base-200">
+      <section className="py-12 px-4 bg-inherit">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
+          <h2 className="text-3xl font-bold my-12 text-center">
             Featured Products
           </h2>
 
@@ -394,7 +407,7 @@ const Home = () => {
             )}
 
           <div className="text-center mt-8">
-            <Link to="/products" className="btn btn-outline">
+            <Link to="/products" className="btn btn-primary btn-outline">
               View All Products
             </Link>
           </div>
