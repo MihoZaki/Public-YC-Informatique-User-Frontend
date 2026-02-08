@@ -48,7 +48,7 @@ const ProductCard = ({ product }) => {
     : product.image;
   return (
     <div
-      className={`card bg-base-100 shadow-sm hover:shadow-2xl transition-shadow duration-300 relative border rounded-lg border-base-content`}
+      className={`card bg-base-100 shadow-sm hover:shadow-2xl transition-shadow duration-300 relative border rounded-lg border-info`}
     >
       <figure
         className="h-48 overflow-hidden cursor-pointer"
@@ -70,7 +70,7 @@ const ProductCard = ({ product }) => {
         <p className="text-sm text-gray-600 line-clamp-2">
           {product.description}
         </p>
-        <div className="mt-2 flex flex-row items-baseline justify-between">
+        <div className="mt-2 flex flex-row items-baseline justify-between flex-wrap gap-2">
           {true
             ? (
               <div className="flex flex-row items-center gap-1">
@@ -106,8 +106,8 @@ const ProductCard = ({ product }) => {
               )
               : (
                 <>
-                  <ShoppingCartIcon className="h-4 w-4 text-white" />
-                  <span className="text-white">Add to cart</span>
+                  <ShoppingCartIcon className="h-4 w-4 text-white  mr-1" />
+                  Add to cart
                 </>
               )}
           </button>

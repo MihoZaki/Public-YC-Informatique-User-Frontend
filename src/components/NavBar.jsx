@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -60,7 +59,7 @@ const Navbar = () => {
     const newCategory = e.target.value;
     setSelectedCategory(newCategory);
     // Optionally, trigger a filter action here if needed globally
-    // e.g., setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
+    // .setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
   };
   let phoneNumber = "+079999999";
   let address = "TAHER, Jijel, Algeria";

@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 // Import the hero background image
 import heroBackgroundImage from "../assets/heroBackgroundImage.png";
+
+// Import category images
 import cpuImage from "../assets/categoryCpu.jpg";
 import gpuImage from "../assets/categoryGpu.jpg";
 import ramImage from "../assets/categoryRam.jpg";
@@ -15,6 +17,14 @@ import motherboardImage from "../assets/categoryMotherboard.jpg";
 import caseImage from "../assets/categoryCase.jpg";
 import psuImage from "../assets/categoryPsu.jpg";
 import peripheralImage from "../assets/categoryPeripherals.jpg";
+
+import intelLogo from "../assets/intel-logo.png";
+import amdLogo from "../assets/amd-logo.png";
+import nvidiaLogo from "../assets/nvidia-logo.png";
+import corsairLogo from "../assets/corsair-logo.png";
+import samsungLogo from "../assets/samsung-logo.png";
+import asusLogo from "../assets/asus-logo.png";
+import gskillLogo from "../assets/gskill-logo.png";
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -28,84 +38,73 @@ const Home = () => {
         setLoading(true);
         const products = await fetchProducts();
         setFeaturedProducts(products.slice(0, 8)); // Get first 8 products
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      } catch (err) {
+        console.error("Error fetching products:", err);
         setError(
-          error.message || "Failed to load products, Please try again later.",
+          err.message || "Failed to load products. Please try again later.",
         );
-        toast.error("Failed to load products, Please try again later.");
+        toast.error("Failed to load products. Please try again later.");
       } finally {
-        setLoading(false); // Stop loading indicator regardless of success/error
+        setLoading(false);
       }
     };
     loadProducts();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
+  // Define the brands for the carousel
+  const brands = [
+    { id: "intel", name: "Intel", image: intelLogo },
+    { id: "amd", name: "AMD", image: amdLogo },
+    { id: "nvidia", name: "NVIDIA", image: nvidiaLogo },
+    { id: "corsair", name: "Corsair", image: corsairLogo },
+    { id: "samsung", name: "Samsung", image: samsungLogo },
+    { id: "asus", name: "ASUS", image: asusLogo },
+    { id: "gskill", name: "G.Skill", image: gskillLogo },
+  ];
+
+  // Hardcoded categories for the deterministic layout (could be fetched if layout is dynamic)
+  // Using placeholder images and names for now as the layout is hardcoded
   const hardcodedCategories = [
     // [0] Big card: CPUs (spans 2 cols × 2 rows)
-    {
-      id: "cpus",
-      name: "CPUs",
-      filter: "CPU",
-      image: cpuImage,
-      isBig: true,
-    },
+    { id: "cpus", name: "CPUs", image: cpuImage, isBig: true, filter: "CPUs" }, // Added filter field
     // [1] Top-right
-    {
-      id: "gpus",
-      name: "GPUs",
-      filter: "GPU",
-      image: gpuImage,
-      isBig: false,
-    },
+    { id: "gpus", name: "GPUs", image: gpuImage, isBig: false, filter: "GPUs" }, // Added filter field
     // [2] Below GPUs
-    {
-      id: "ram",
-      name: "RAM",
-      filter: "RAM",
-      image: ramImage,
-      isBig: false,
-    },
+    { id: "ram", name: "RAM", image: ramImage, isBig: false, filter: "RAM" }, // Added filter field
     // [3] Below RAM
     {
       id: "storage",
       name: "Storage",
-      filter: "Storage",
       image: storageImage,
       isBig: false,
-    },
+      filter: "Storage",
+    }, // Added filter field
     // [4] Right of big card (row 1, col 3)
     {
       id: "motherboards",
       name: "Motherboards",
-      filter: "Motherboard",
       image: motherboardImage,
       isBig: false,
-    },
+      filter: "Motherboards",
+    }, // Added filter field
     // [5] Below motherboards
     {
       id: "cases",
       name: "Cases",
-      filter: "Case",
       image: caseImage,
       isBig: false,
-    },
+      filter: "Cases",
+    }, // Added filter field
     // [6] Below cases
-    {
-      id: "psus",
-      name: "PSUs",
-      filter: "PSU",
-      image: psuImage,
-      isBig: false,
-    },
+    { id: "psus", name: "PSUs", image: psuImage, isBig: false, filter: "PSUs" }, // Added filter field
     // [7] Bottom-right (last slot)
     {
       id: "peripherals",
       name: "Peripherals",
-      filter: "Peripheral",
       image: peripheralImage,
       isBig: false,
-    },
+      filter: "Peripherals",
+    }, // Added filter field
   ];
 
   return (
@@ -130,9 +129,7 @@ const Home = () => {
               Your trusted partner for all your tech needs.
             </p>
             <div className=" w-full flex flex-row items-center justify-center gap-4">
-              <Link to="/products" className="btn btn-secondary">
-                Shop Now
-              </Link>
+              <Link to="/products" className="btn btn-secondary">Shop Now</Link>
               <Link to="/build-pc" className="btn btn-primary">
                 Build Your PC
               </Link>
@@ -154,13 +151,11 @@ const Home = () => {
             <Link
               key={hardcodedCategories[0].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[0].filter.toLowerCase(),
-                )
-              }`}
-              className="lg:col-span-2 lg:row-span-2 flex flex-col" // Add flex properties to the link
+                encodeURIComponent(hardcodedCategories[0].filter.toLowerCase())
+              }`} // Encode the filter name
+              className="lg:col-span-2 lg:row-span-2 flex flex-col"
             >
-              <div className="relative flex-grow overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+              <div className="relative flex-grow overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                 <img
                   src={hardcodedCategories[0].image}
                   alt={hardcodedCategories[0].name}
@@ -181,10 +176,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[1].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[1].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[1].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-full w-full overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -207,10 +200,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[2].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[2].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[2].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -233,10 +224,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[3].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[3].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[3].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -259,10 +248,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[4].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[4].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[4].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -285,10 +272,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[5].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[5].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[5].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -311,10 +296,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[6].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[6].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[6].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -337,10 +320,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[7].id}
               to={`/products?category=${
-                encodeURIComponent(
-                  hardcodedCategories[7].filter.toLowerCase(),
-                )
-              }`}
+                encodeURIComponent(hardcodedCategories[7].filter.toLowerCase())
+              }`} // Encode the filter name
               className="lg:col-span-2 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -361,7 +342,34 @@ const Home = () => {
           </div>
         </div>
       </section>
-
+      {/* Brand Carousel Section */}
+      <section className="py-12 bg-inherit">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold my-8 text-center">
+            Trusted Brands
+          </h2>
+          {/* Wrap carousel in a flex container for centering */}
+          <div className="flex justify-center">
+            <div className="carousel rounded-box carousel-center bg-base-100 shadow-md p-4 w-full max-w-7xl border border-info">
+              {/* Added max-w-6xl or adjust as needed */}
+              {brands.map((brand, index) => (
+                <div
+                  key={brand.id}
+                  className="carousel-item flex justify-center items-center p-4"
+                >
+                  {/* Adjust width/height and styling as needed */}
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="object-contain h-24 w-auto max-w-full" // Adjust height (h-24) as needed
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Featured Products Section */}
       <section className="py-12 px-4 bg-inherit">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold my-12 text-center">
@@ -385,7 +393,7 @@ const Home = () => {
               </div>
             )
             : error
-            ? (
+            ? ( // Show error state if error occurred
               <div className="text-center py-12">
                 <p className="text-xl mb-4 text-error">
                   Error loading products: {error}
@@ -407,7 +415,7 @@ const Home = () => {
             )}
 
           <div className="text-center mt-8">
-            <Link to="/products" className="btn btn-primary btn-outline">
+            <Link to="/products" className="btn btn-outline">
               View All Products
             </Link>
           </div>
