@@ -27,10 +27,14 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    let query = [];
     if (searchTerm.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm("");
+      query.push(`search=${encodeURIComponent(searchTerm)}`);
     }
+    if (selectedCategory !== "All Categories") {
+      query.push(`category=${encodeURIComponent(selectedCategory)}`);
+    }
+    navigate(`/products?${query.join("&")}`);
   };
 
   useEffect(() => {
@@ -158,7 +162,10 @@ const Navbar = () => {
 
           {/* Centered Search Bar (Desktop) - Updated to use native select dropdown with arrow and separator */}
           <div className="hidden md:flex justify-center flex-1 max-w-2xl">
-            <form onSubmit={handleSearch} className="w-full max-w-lg">
+            <form
+              onSubmit={handleSearch}
+              className="w-full max-w-lg border border-secondary-content rounded-lg"
+            >
               <div className="flex rounded-lg overflow-hidden bg-base-200">
                 {/* Changed bg-gray-800 to bg-base-200 */}
                 {/* Category Select with Custom Arrow */}
