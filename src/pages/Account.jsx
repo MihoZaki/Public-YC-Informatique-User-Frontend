@@ -60,6 +60,7 @@ const Account = () => {
                 <li>
                   <Link to="/account/settings">Account Settings</Link>
                 </li>
+
                 <li>
                   <button onClick={logout} className="btn w-full text-left">
                     Log Out
@@ -112,8 +113,8 @@ const Account = () => {
                               order.status === "Delivered"
                                 ? "badge-success"
                                 : order.status === "Shipped"
-                                  ? "badge-info"
-                                  : "badge-warning"
+                                ? "badge-info"
+                                : "badge-warning"
                             }`}
                           >
                             {order.status}

@@ -4,6 +4,15 @@ import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { fetchCategories, fetchProducts } from "../services/api"; // Import the new API functions
 import { toast } from "sonner";
+// Import Heroicons
+import {
+  ChatBubbleBottomCenterTextIcon,
+  ClockIcon,
+  CubeIcon,
+  CurrencyDollarIcon,
+  ShieldCheckIcon,
+  TruckIcon,
+} from "@heroicons/react/24/outline"; // Import outline icons
 
 // Import the hero background image
 import heroBackgroundImage from "../assets/heroBackgroundImage.png";
@@ -60,6 +69,41 @@ const Home = () => {
     { id: "samsung", name: "Samsung", image: samsungLogo },
     { id: "asus", name: "ASUS", image: asusLogo },
     { id: "gskill", name: "G.Skill", image: gskillLogo },
+  ];
+
+  // Define the services
+  const services = [
+    {
+      id: "cash-on-delivery",
+      title: "Cash on Delivery",
+      icon: <CurrencyDollarIcon className="h-8 w-8 text-primary" />,
+    },
+    {
+      id: "fast-delivery",
+      title: "Fast Delivery",
+      icon: <TruckIcon className="h-8 w-8 text-primary" />,
+    },
+    {
+      id: "province-delivery",
+      title: "Ship to all Willayas",
+      icon: <TruckIcon className="h-8 w-8 text-primary" />, // Reusing Truck icon
+    },
+    {
+      id: "support",
+      title: "24/7 Support",
+      icon: <ChatBubbleBottomCenterTextIcon className="h-8 w-8 text-primary" />,
+    },
+    {
+      id: "products",
+      title: "Always New Products",
+      icon: <CubeIcon className="h-8 w-8 text-primary" />,
+    },
+    ,
+    {
+      id: "warranty",
+      title: "Guaranteed Warranty",
+      icon: <ShieldCheckIcon className="h-10 w-10 text-primary" />, // Added new service with icon
+    },
   ];
 
   // Hardcoded categories for the deterministic layout (could be fetched if layout is dynamic)
@@ -134,6 +178,30 @@ const Home = () => {
                 Build Your PC
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-12 bg-inherit">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            Why Choose Us?
+          </h2>{" "}
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-6">
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className="flex flex-col items-center justify-center p-4 bg-base-100 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-accent"
+              >
+                <div className="mb-4">
+                  {service.icon}
+                </div>
+                <h3 className="text-center text-xl font-black text-base-content">
+                  {service.title}
+                </h3>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -342,6 +410,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+
       {/* Brand Carousel Section */}
       <section className="py-12 bg-inherit">
         <div className="container mx-auto">
@@ -369,6 +438,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+
       {/* Featured Products Section */}
       <section className="py-12 px-4 bg-inherit">
         <div className="container mx-auto">

@@ -15,6 +15,7 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+
   const handleQuickAdd = async () => {
     if (isAdding) return;
     setIsAdding(true);
@@ -25,7 +26,19 @@ const ProductCard = ({ product }) => {
       const imageForCart = product.image_urls
         ? product.image_urls[0]
         : product.image;
-      await addToCart({ ...product, quantity: 1, image: imageForCart }); // Pass the correct image
+
+      // Determine price to add to cart based on discount
+      const priceForCart = product.has_active_discount &&
+          product.discounted_price_cents !== undefined
+        ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
+        : product.price / 100; // Fallback to regular price (assuming it's in cents)
+
+      await addToCart({
+        ...product,
+        quantity: 1,
+        image: imageForCart,
+        price: priceForCart,
+      }); // Pass the correct image and price
       setIsAdded(true);
       toast.success(`"${product.title}" added to cart!`);
       setTimeout(() => {
@@ -38,7 +51,7 @@ const ProductCard = ({ product }) => {
       setIsAdding(false);
     }
   };
-  // ...
+
   const handleCardPress = () => {
     navigation(`/product/${product.id}`);
   };
@@ -46,12 +59,25 @@ const ProductCard = ({ product }) => {
   const displayImage = product.image_urls
     ? product.image_urls[0]
     : product.image;
+
+  // --- Determine Pricing Information ---
+  const hasDiscount = product.has_active_discount &&
+    product.discounted_price_cents !== undefined;
+  const currentPrice = hasDiscount
+    ? product.discounted_price_cents / 100
+    : product.price / 100; // Convert cents to dollars
+  const originalPrice = hasDiscount ? product.price / 100 : null; // Convert cents to dollars
+  const discountPercentage = hasDiscount
+    ? product.effective_discount_percentage
+    : 0;
+  // --- End of Determination ---
+
   return (
     <div
       className={`card bg-base-100 shadow-sm hover:shadow-2xl transition-shadow duration-300 relative border rounded-lg border-info`}
     >
       <figure
-        className="h-48 overflow-hidden cursor-pointer"
+        className="h-48 overflow-hidden cursor-pointer relative" // Added 'relative' for badge positioning
         onClick={handleCardPress}
       >
         <img
@@ -59,6 +85,12 @@ const ProductCard = ({ product }) => {
           alt={product.title}
           className="w-full h-full object-fill rounded-t-lg hover:scale-105 transition-transform duration-300"
         />
+        {/* Discount Badge */}
+        {hasDiscount && discountPercentage > 0 && (
+          <div className="absolute top-2 left-2 bg-info text-white text-s font-bold px-2 py-1 rounded-lg z-10">
+            -{discountPercentage}%
+          </div>
+        )}
       </figure>
       <div className="card-body p-4">
         <h2 className="card-title text-m line-clamp-2">{product.title}</h2>
@@ -71,22 +103,18 @@ const ProductCard = ({ product }) => {
           {product.description}
         </p>
         <div className="mt-2 flex flex-row items-baseline justify-between flex-wrap gap-2">
-          {true
-            ? (
-              <div className="flex flex-row items-center gap-1">
-                <p className="text-xs font-medium text-gray-400 line-through mb-2">
-                  DA {product.price}
-                </p>
-                <p className="text-sm font-bold text-base-content mb-2">
-                  DA {(product.price - 10).toFixed(2)}
-                </p>
-              </div>
-            )
-            : (
-              <p className="text-lg font-bold text-base-content mb-2">
-                DA {product.price}
+          {/* Price Display */}
+          <div className="flex flex-col">
+            <p className="text-sm font-bold text-base-content mb-0">
+              {/* mb-0 removes default bottom margin */}
+              DA {currentPrice.toFixed(2)}
+            </p>
+            {hasDiscount && originalPrice && (
+              <p className="text-xs font-medium text-gray-400 line-through mt-0">
+                DA {originalPrice.toFixed(2)}
               </p>
             )}
+          </div>
           <button
             className={`btn btn-sm ${
               isAdded ? "btn-success " : "btn-primary"
@@ -106,7 +134,7 @@ const ProductCard = ({ product }) => {
               )
               : (
                 <>
-                  <ShoppingCartIcon className="h-4 w-4 text-white  mr-1" />
+                  <ShoppingCartIcon className="h-4 w-4 text-secondary-content mr-1" />
                   Add to cart
                 </>
               )}
