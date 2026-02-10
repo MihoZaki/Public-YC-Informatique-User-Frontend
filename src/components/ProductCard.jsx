@@ -22,16 +22,14 @@ const ProductCard = ({ product }) => {
     setIsAdded(false);
 
     try {
-      // Ensure the image added to the cart is the first one from the product's image_urls, or fall back to image
-      const imageForCart = product.image_urls
-        ? product.image_urls[0]
-        : product.image;
+      // Ensure the image added to the cart is the first one from the product's image_urls
+      const imageForCart = product.image_urls ? product.image_urls[0] : ""; // Fallback to empty string if no image_urls
 
-      // Determine price to add to cart based on discount
+      // Determine price to add to cart based on discount (using new field names)
       const priceForCart = product.has_active_discount &&
           product.discounted_price_cents !== undefined
         ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
-        : product.price / 100; // Fallback to regular price (assuming it's in cents)
+        : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
 
       await addToCart({
         ...product,
@@ -40,7 +38,7 @@ const ProductCard = ({ product }) => {
         price: priceForCart,
       }); // Pass the correct image and price
       setIsAdded(true);
-      toast.success(`"${product.title}" added to cart!`);
+      toast.success(`"${product.name}" added to cart!`); // Use product.name
       setTimeout(() => {
         setIsAdded(false);
       }, 1500);
@@ -56,17 +54,15 @@ const ProductCard = ({ product }) => {
     navigation(`/product/${product.id}`);
   };
 
-  const displayImage = product.image_urls
-    ? product.image_urls[0]
-    : product.image;
+  const displayImage = product.image_urls ? product.image_urls[0] : ""; // Fallback to empty string if no image_urls
 
-  // --- Determine Pricing Information ---
+  // --- Determine Pricing Information (using new field names) ---
   const hasDiscount = product.has_active_discount &&
     product.discounted_price_cents !== undefined;
   const currentPrice = hasDiscount
     ? product.discounted_price_cents / 100
-    : product.price / 100; // Convert cents to dollars
-  const originalPrice = hasDiscount ? product.price / 100 : null; // Convert cents to dollars
+    : product.price_cents / 100; // Convert cents to dollars
+  const originalPrice = hasDiscount ? product.price_cents / 100 : null; // Convert cents to dollars
   const discountPercentage = hasDiscount
     ? product.effective_discount_percentage
     : 0;
@@ -82,7 +78,7 @@ const ProductCard = ({ product }) => {
       >
         <img
           src={displayImage}
-          alt={product.title}
+          alt={product.name} // Use product.name
           className="w-full h-full object-fill rounded-t-lg hover:scale-105 transition-transform duration-300"
         />
         {/* Discount Badge */}
@@ -94,14 +90,16 @@ const ProductCard = ({ product }) => {
       </figure>
       <div className="card-body p-4 relative">
         {/* Added 'relative' for absolute positioning of button */}
-        <h2 className="card-title text-m line-clamp-2">{product.title}</h2>
+        <h2 className="card-title text-m line-clamp-2">{product.name}</h2>{" "}
+        {/* Use product.name */}
         <div className="flex items-center gap-1">
           <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
           <span className="text-xs">4.5</span>
           <span className="text-xs text-gray-500">(128)</span>
         </div>
         <p className="text-sm text-gray-600 line-clamp-2">
-          {product.description}
+          {product.short_description || product.description}{" "}
+          {/* Use short_description, fallback to description */}
         </p>
         {/* Price Display Container */}
         <div className="mt-2">

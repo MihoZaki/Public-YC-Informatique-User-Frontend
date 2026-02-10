@@ -1,6 +1,7 @@
+// src/pages/BuildPC.jsx
 import React, { useState } from "react";
 import { useStore } from "../stores/useStore"; // Assuming useStore manages cart and PC build components
-
+import BuildGif from "../assets/Pc Build .gif";
 const BuildPC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const { buildPcComponents, setPcComponent, cart, addToCart } = useStore(); // Get cart and addToCart from store
@@ -51,7 +52,7 @@ const BuildPC = () => {
         socket: "LGA1700",
         integratedGraphics: true,
         tdp: 125,
-        image: "https://placehold.co/100x100?text=i9-13900K",
+        image: "https://placehold.co/100x100?text=i9-13900K  ",
         supportedMemoryTypes: ["DDR4", "DDR5"],
         maxMemorySpeed: 5600,
         maxMemoryCapacity: 128,
@@ -63,7 +64,7 @@ const BuildPC = () => {
         socket: "AM5",
         integratedGraphics: false,
         tdp: 170,
-        image: "https://placehold.co/100x100?text=Ryzen+9+7950X",
+        image: "https://placehold.co/100x100?text=Ryzen+9+7950X  ",
         supportedMemoryTypes: ["DDR5"],
         maxMemorySpeed: 5200,
         maxMemoryCapacity: 128,
@@ -75,7 +76,7 @@ const BuildPC = () => {
         socket: "LGA1700",
         integratedGraphics: true,
         tdp: 125,
-        image: "https://placehold.co/100x100?text=i7-13700K",
+        image: "https://placehold.co/100x100?text=i7-13700K  ",
         supportedMemoryTypes: ["DDR4", "DDR5"],
         maxMemorySpeed: 5600,
         maxMemoryCapacity: 128,
@@ -95,7 +96,7 @@ const BuildPC = () => {
         supportedMemoryTypes: ["DDR4", "DDR5"],
         storageSlots: { sata: 6, m2: 4 },
         pcieVersion: 5.0,
-        image: "https://placehold.co/100x100?text=ROG+Strix+Z790-E",
+        image: "https://placehold.co/100x100?text=ROG+Strix+Z790-E  ",
       },
       {
         id: 2,
@@ -109,7 +110,7 @@ const BuildPC = () => {
         supportedMemoryTypes: ["DDR5"],
         storageSlots: { sata: 4, m2: 2 },
         pcieVersion: 5.0,
-        image: "https://placehold.co/100x100?text=MAG+B650+Tomahawk",
+        image: "https://placehold.co/100x100?text=MAG+B650+Tomahawk  ",
       },
       {
         id: 3,
@@ -123,7 +124,7 @@ const BuildPC = () => {
         supportedMemoryTypes: ["DDR4"],
         storageSlots: { sata: 4, m2: 1 },
         pcieVersion: 4.0,
-        image: "https://placehold.co/100x100?text=B660M+DS3H",
+        image: "https://placehold.co/100x100?text=B660M+DS3H  ",
       },
       {
         id: 4,
@@ -137,7 +138,7 @@ const BuildPC = () => {
         supportedMemoryTypes: ["DDR4"],
         storageSlots: { sata: 4, m2: 1 },
         pcieVersion: 4.0,
-        image: "https://placehold.co/100x100?text=B550M-HDV",
+        image: "https://placehold.co/100x100?text=B550M-HDV  ",
       },
       // Add more Motherboard mock data as needed...
     ],
@@ -151,7 +152,7 @@ const BuildPC = () => {
         maxGpuLength: 360,
         maxCpuCoolerHeight: 160,
         color: "Black",
-        image: "https://placehold.co/100x100?text=NZXT+H510",
+        image: "https://placehold.co/100x100?text=NZXT+H510  ",
       },
       {
         id: 2,
@@ -162,7 +163,7 @@ const BuildPC = () => {
         maxGpuLength: 360,
         maxCpuCoolerHeight: 165,
         color: "White",
-        image: "https://placehold.co/100x100?text=Meshify+C",
+        image: "https://placehold.co/100x100?text=Meshify+C  ",
       },
       {
         id: 3,
@@ -173,7 +174,7 @@ const BuildPC = () => {
         maxGpuLength: 360,
         maxCpuCoolerHeight: 170,
         color: "Black",
-        image: "https://placehold.co/100x100?text=4000D+Airflow",
+        image: "https://placehold.co/100x100?text=4000D+Airflow  ",
       },
       {
         id: 4,
@@ -184,7 +185,7 @@ const BuildPC = () => {
         maxGpuLength: 300,
         maxCpuCoolerHeight: 160,
         color: "Black",
-        image: "https://placehold.co/100x100?text=Core+1000",
+        image: "https://placehold.co/100x100?text=Core+1000  ",
       },
       // Add more Case mock data as needed...
     ],
@@ -197,7 +198,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 2,
@@ -207,7 +208,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 3,
@@ -217,7 +218,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 4,
@@ -227,7 +228,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
 
       {
@@ -238,7 +239,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 6,
@@ -248,7 +249,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 7,
@@ -258,7 +259,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 8,
@@ -268,7 +269,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
 
       {
@@ -279,7 +280,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 10,
@@ -289,7 +290,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 11,
@@ -299,7 +300,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 12,
@@ -309,7 +310,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
 
       {
@@ -320,7 +321,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 14,
@@ -330,7 +331,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 15,
@@ -340,7 +341,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 16,
@@ -350,7 +351,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
 
       {
@@ -361,7 +362,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 18,
@@ -371,7 +372,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 19,
@@ -381,7 +382,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 20,
@@ -391,7 +392,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
       {
         id: 21,
@@ -401,7 +402,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Vengeance+32GB",
+        image: "https://placehold.co/100x100?text=Vengeance+32GB  ",
       },
       {
         id: 22,
@@ -411,7 +412,7 @@ const BuildPC = () => {
         speed: "3600MHz",
         type: "DDR5",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Trident+Z5+16GB",
+        image: "https://placehold.co/100x100?text=Trident+Z5+16GB  ",
       },
       {
         id: 23,
@@ -421,7 +422,7 @@ const BuildPC = () => {
         speed: "3000MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Ballistix+32GB",
+        image: "https://placehold.co/100x100?text=Ballistix+32GB  ",
       },
       {
         id: 24,
@@ -431,7 +432,7 @@ const BuildPC = () => {
         speed: "3200MHz",
         type: "DDR4",
         slotsUsed: 2,
-        image: "https://placehold.co/100x100?text=Fury+Beast+64GB",
+        image: "https://placehold.co/100x100?text=Fury+Beast+64GB  ",
       },
     ],
     "cpu-cooler": [
@@ -442,7 +443,7 @@ const BuildPC = () => {
         supportedSockets: ["LGA1700", "AM5", "AM4"],
         maxTDP: 270,
         height: 165,
-        image: "https://placehold.co/100x100?text=NH-D15",
+        image: "https://placehold.co/100x100?text=NH-D15  ",
       },
       {
         id: 2,
@@ -451,7 +452,7 @@ const BuildPC = () => {
         supportedSockets: ["LGA1700", "AM5", "AM4"],
         maxTDP: 280,
         height: 294,
-        image: "https://placehold.co/100x100?text=H150i+ELITE",
+        image: "https://placehold.co/100x100?text=H150i+ELITE  ",
       },
       {
         id: 3,
@@ -460,7 +461,7 @@ const BuildPC = () => {
         supportedSockets: ["LGA1700", "AM5", "AM4"],
         maxTDP: 250,
         height: 158,
-        image: "https://placehold.co/100x100?text=DRP4",
+        image: "https://placehold.co/100x100?text=DRP4  ",
       },
       {
         id: 4,
@@ -469,7 +470,7 @@ const BuildPC = () => {
         supportedSockets: ["LGA1700"],
         maxTDP: 150,
         height: 156,
-        image: "https://placehold.co/100x100?text=F34+ESports",
+        image: "https://placehold.co/100x100?text=F34+ESports  ",
       },
       // Add more CPU Cooler mock data as needed...
     ],
@@ -481,7 +482,7 @@ const BuildPC = () => {
         capacity: "1TB",
         type: "SSD",
         interface: "NVMe M.2 2280",
-        image: "https://placehold.co/100x100?text=980+Pro+1TB",
+        image: "https://placehold.co/100x100?text=980+Pro+1TB  ",
       },
       {
         id: 2,
@@ -490,7 +491,7 @@ const BuildPC = () => {
         capacity: "2TB",
         type: "SSD",
         interface: "NVMe M.2 2280",
-        image: "https://placehold.co/100x100?text=SN850+2TB",
+        image: "https://placehold.co/100x100?text=SN850+2TB  ",
       },
       {
         id: 3,
@@ -499,7 +500,7 @@ const BuildPC = () => {
         capacity: "4TB",
         type: "HDD",
         interface: 'SATA 3.5"',
-        image: "https://placehold.co/100x100?text=Barracuda+4TB",
+        image: "https://placehold.co/100x100?text=Barracuda+4TB  ",
       },
       {
         id: 4,
@@ -508,7 +509,7 @@ const BuildPC = () => {
         capacity: "2TB",
         type: "SSD",
         interface: 'SATA 2.5"',
-        image: "https://placehold.co/100x100?text=MX500+2TB",
+        image: "https://placehold.co/100x100?text=MX500+2TB  ",
       },
       // Add more Storage mock data as needed...
     ],
@@ -520,7 +521,7 @@ const BuildPC = () => {
         vram: "24GB",
         length: 310,
         pcieVersion: 4.0,
-        image: "https://placehold.co/100x100?text=RTX+4090",
+        image: "https://placehold.co/100x100?text=RTX+4090  ",
       },
       {
         id: 2,
@@ -529,7 +530,7 @@ const BuildPC = () => {
         vram: "16GB",
         length: 285,
         pcieVersion: 4.0,
-        image: "https://placehold.co/100x100?text=RTX+4080",
+        image: "https://placehold.co/100x100?text=RTX+4080  ",
       },
       {
         id: 3,
@@ -538,7 +539,7 @@ const BuildPC = () => {
         vram: "24GB",
         length: 283,
         pcieVersion: 4.0,
-        image: "https://placehold.co/100x100?text=RX+7900+XTX",
+        image: "https://placehold.co/100x100?text=RX+7900+XTX  ",
       },
       {
         id: 4,
@@ -547,7 +548,7 @@ const BuildPC = () => {
         vram: "Depends on CPU",
         length: 0,
         pcieVersion: null,
-        image: "https://placehold.co/100x100?text=Integrated+GPU",
+        image: "https://placehold.co/100x100?text=Integrated+GPU  ",
         isIntegratedOption: true,
       },
       // Add more GPU mock data as needed...
@@ -560,7 +561,7 @@ const BuildPC = () => {
         wattage: "850W",
         efficiency: "80+ Gold",
         formFactor: "ATX",
-        image: "https://placehold.co/100x100?text=RM850x",
+        image: "https://placehold.co/100x100?text=RM850x  ",
       },
       {
         id: 2,
@@ -569,7 +570,7 @@ const BuildPC = () => {
         wattage: "750W",
         efficiency: "80+ Bronze",
         formFactor: "ATX",
-        image: "https://placehold.co/100x100?text=SuperNOVA+750W",
+        image: "https://placehold.co/100x100?text=SuperNOVA+750W  ",
       },
       {
         id: 3,
@@ -578,7 +579,7 @@ const BuildPC = () => {
         wattage: "650W",
         efficiency: "80+ Gold",
         formFactor: "ATX",
-        image: "https://placehold.co/100x100?text=Focus+GX-650",
+        image: "https://placehold.co/100x100?text=Focus+GX-650  ",
       },
       // Add more PSU mock data as needed...
     ],
@@ -785,6 +786,35 @@ const BuildPC = () => {
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Build Your PC</h1>
 
+      {/* Introductory Section - Full Width, Bigger, with Overlay Text */}
+      <div className="relative w-full h-96 mb-8 rounded-xl overflow-hidden shadow-xl border border-base-300">
+        {/* Adjust h-96 for desired height */}
+        <img
+          src={BuildGif}
+          alt="Building a PC illustration"
+          className="w-full h-full object-cover"
+        />
+        {/* Overlay Text Container */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-6">
+          {/* bg-black/50 adds semi-transparent dark overlay */}
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 text-center">
+            {/* Larger text, centered */}
+            Build Your Dream PC
+          </h2>
+          <p className="text-xl text-white/90 mb-6 text-center max-w-2xl">
+            {/* Slightly smaller text, centered, limited width */}
+            Customize your perfect computer by selecting each component
+            step-by-step. Follow the guide to choose compatible parts, configure
+            quantities, and finalize your build.
+          </p>
+          <p className="text-sm text-white/70 text-center">
+            {/* Smaller hint text, centered */}
+            Need help? Click the information icons next to each step name for
+            tips!
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Steps Navigation with Information Icon Modals (unchanged) */}
         <div className="lg:col-span-1">
@@ -927,7 +957,7 @@ const BuildPC = () => {
               </div>
 
               {/* Summary Section (always visible, updated) */}
-              <div className="card bg-base-200 shadow-inner mt-6 border border-secondary-content">
+              <div className="card bg-inherit shadow-inner mt-6 border border-secondary-content">
                 <div className="card-body">
                   <h3 className="card-title text-lg">Current Build</h3>
                   <div className="space-y-2">
@@ -946,7 +976,7 @@ const BuildPC = () => {
                             </span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className="mr-2">Qty:</span>
+                            <span className="mr-2">{component.price} DA</span>
                             <input
                               type="number"
                               min="1"

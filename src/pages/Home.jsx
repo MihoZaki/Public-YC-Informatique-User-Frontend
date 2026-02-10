@@ -95,7 +95,7 @@ const Home = () => {
     },
     {
       id: "products",
-      title: "Always New Products",
+      title: "Fresh Products",
       icon: <CubeIcon className="h-8 w-8 text-primary" />,
     },
     ,
@@ -419,7 +419,7 @@ const Home = () => {
           </h2>
           {/* Wrap carousel in a flex container for centering */}
           <div className="flex justify-center">
-            <div className="carousel rounded-box carousel-center bg-base-100 shadow-md p-4 w-full max-w-7xl border border-info">
+            <div className="carousel rounded-box carousel-center bg-base-100 shadow-md p-6 w-full max-w-7xl border border-info">
               {/* Added max-w-6xl or adjust as needed */}
               {brands.map((brand, index) => (
                 <div
