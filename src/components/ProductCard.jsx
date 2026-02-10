@@ -92,7 +92,8 @@ const ProductCard = ({ product }) => {
           </div>
         )}
       </figure>
-      <div className="card-body p-4">
+      <div className="card-body p-4 relative">
+        {/* Added 'relative' for absolute positioning of button */}
         <h2 className="card-title text-m line-clamp-2">{product.title}</h2>
         <div className="flex items-center gap-1">
           <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
@@ -102,10 +103,11 @@ const ProductCard = ({ product }) => {
         <p className="text-sm text-gray-600 line-clamp-2">
           {product.description}
         </p>
-        <div className="mt-2 flex flex-row items-baseline justify-between flex-wrap gap-2">
+        {/* Price Display Container */}
+        <div className="mt-2">
           {/* Price Display */}
           <div className="flex flex-col">
-            <p className="text-sm font-bold text-base-content mb-0">
+            <p className="text-lg font-bold text-base-content mb-0">
               {/* mb-0 removes default bottom margin */}
               DA {currentPrice.toFixed(2)}
             </p>
@@ -115,31 +117,33 @@ const ProductCard = ({ product }) => {
               </p>
             )}
           </div>
-          <button
-            className={`btn btn-sm ${
-              isAdded ? "btn-success " : "btn-primary"
-            } z-50`}
-            onClick={handleQuickAdd}
-            title={isAdded ? "Added to Cart!" : "Add to Cart"}
-            disabled={isAdded || isAdding}
-          >
-            {isAdding
-              ? <span className="loading loading-spinner loading-xs"></span>
-              : isAdded
-              ? (
-                <>
-                  <CheckCircleIcon className="h-4 w-4 mr-1 text-base-content" />
-                  <span className="text-base-content">Added!</span>
-                </>
-              )
-              : (
-                <>
-                  <ShoppingCartIcon className="h-4 w-4 text-secondary-content mr-1" />
-                  Add to cart
-                </>
-              )}
-          </button>
         </div>
+
+        {/* Add to Cart Button - Positioned absolutely at the bottom right */}
+        <button
+          className={`absolute bottom-4 right-4 btn btn-sm ${
+            isAdded ? "btn-success " : "btn-primary"
+          } z-50`}
+          onClick={handleQuickAdd}
+          title={isAdded ? "Added to Cart!" : "Add to Cart"}
+          disabled={isAdded || isAdding}
+        >
+          {isAdding
+            ? <span className="loading loading-spinner loading-xs"></span>
+            : isAdded
+            ? (
+              <>
+                <CheckCircleIcon className="h-4 w-4 mr-1 text-base-content" />
+                <span className="text-base-content">Added!</span>
+              </>
+            )
+            : (
+              <>
+                <ShoppingCartIcon className="h-4 w-4 text-secondary-content mr-1" />
+                Add to cart
+              </>
+            )}
+        </button>
       </div>
     </div>
   );

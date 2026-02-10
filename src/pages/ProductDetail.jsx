@@ -90,7 +90,7 @@ const ProductDetail = () => {
           >
             Retry
           </button>
-          <Link to="/products" className="btn btn-ghost ml-2">
+          <Link to="/products" className="btn btn-accent btn-outline">
             Back to Products
           </Link>
         </div>
@@ -113,11 +113,12 @@ const ProductDetail = () => {
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       {/* Updated Link with btn-sm */}
-      <Link to="/products" className="btn btn-sm btn-ghost mb-6">
+      <Link to="/products" className="btn btn-accent btn-outline mb-6">
         <ArrowLeftIcon className="h-4 w-4 mr-2" />
         Back to Products
       </Link>
 
+      <div className="divider"></div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Image Gallery */}
         <div>
@@ -161,8 +162,12 @@ const ProductDetail = () => {
               DZD {product.price}
             </span>
             {/* Removed discount calculation if not in API */}
-            {/* <span className="line-through text-gray-500">${(product.price * 1.2).toFixed(2)}</span> */}
-            {/* <span className="badge badge-success bg-green-600 text-white">20% OFF</span> */}
+            <span className="line-through text-gray-500">
+              DZD {(product.price * 1.2).toFixed(2)}
+            </span>
+            <span className="badge badge-success bg-green-600 text-white">
+              20% OFF
+            </span>
           </div>
 
           <div className="mb-6">
@@ -224,6 +229,7 @@ const ProductDetail = () => {
         </div>
       </div>
 
+      <div className="divider"></div>
       {/* Related Products */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold mb-6">Related Products</h2>
