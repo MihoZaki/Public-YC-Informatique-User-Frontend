@@ -1,8 +1,4 @@
-import {
-  ComputerDesktopIcon,
-  MoonIcon,
-  SunIcon,
-} from "@heroicons/react/24/outline";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 
 const ThemeSwitcher = () => {
@@ -38,32 +34,17 @@ const ThemeSwitcher = () => {
   return (
     <button
       onClick={toggleTheme}
-      to="/build-pc"
-      className={`flex flex-col items-center transition`} // Changed text-red-500 to text-primary, text-gray-300 to text-base-content, hover:text-white to hover:text-primary
+      className={`flex flex-row px-3 items-center gap-2 transition`} // Changed to flex-row, added gap-2 for spacing
     >
       <div>
-        {currentTheme === "fantasy" ? (
-          <MoonIcon className="h-6 w-6" />
-        ) : (
-          <SunIcon className="h-6 w-6" />
-        )}{" "}
+        {currentTheme === "fantasy"
+          ? <MoonIcon className="h-6 w-6" />
+          : <SunIcon className="h-6 w-6" />}
       </div>
-      <p className="text-xs mt-1">
-        {currentTheme === "fantasy" ? "Dark Mode" : "Light Mode"}{" "}
+      <p className="text-sm">
+        {currentTheme === "fantasy" ? "Dark Mode" : "Light Mode"}
       </p>
     </button>
-    // <button
-    //   onClick={toggleTheme}
-    //   className="btn btn-sm bg-base-100" // Keeping your original classes
-    //   aria-label={`Toggle to ${
-    //     currentTheme === "fantasy" ? "dark" : "light"
-    //   } mode`}
-    // >
-    //   <div className="flex flex-col items-center p-2">
-    //   </div>
-
-    //   {/* Using text labels */}
-    // </button>
   );
 };
 

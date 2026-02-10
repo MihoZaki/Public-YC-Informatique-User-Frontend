@@ -1,10 +1,11 @@
 // src/pages/Account.jsx
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Added useLocation
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth
 
 const Account = () => {
   const { user, logout } = useAuth(); // Get user and logout function
+  const location = useLocation(); // Get current location
 
   // If no user is logged in, maybe redirect or show a message
   // For now, let's just render nothing if not logged in, assuming the router handles protection
@@ -38,6 +39,11 @@ const Account = () => {
     },
   ];
 
+  // Helper function to check if the current link is active
+  const isActiveLink = (path) => {
+    return location.pathname === path;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
@@ -50,15 +56,30 @@ const Account = () => {
               <h2 className="card-title text-lg mb-4">Account Menu</h2>
               <ul className="menu bg-base-100 w-full rounded-box">
                 <li>
-                  <Link to="/account" className="active">
+                  <Link
+                    to="/account"
+                    className={isActiveLink("/account") ? "active" : ""}
+                  >
                     Dashboard
                   </Link>
                 </li>
                 <li>
-                  <Link to="/account/orders">My Orders</Link>
+                  <Link
+                    to="/account/orders"
+                    className={isActiveLink("/account/orders") ? "active" : ""}
+                  >
+                    My Orders
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/account/settings">Account Settings</Link>
+                  <Link
+                    to="/account/settings"
+                    className={isActiveLink("/account/settings")
+                      ? "active"
+                      : ""}
+                  >
+                    Account Settings
+                  </Link>
                 </li>
 
                 <li>

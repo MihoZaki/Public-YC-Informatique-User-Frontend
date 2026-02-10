@@ -221,12 +221,6 @@ const ProductDetail = () => {
               Add to Cart
             </button>
           </div>
-
-          <div className="divider"></div>
-          <div className="flex gap-4">
-            <button className="btn btn-outline">Add to Wishlist</button>
-            <button className="btn btn-outline">Compare</button>
-          </div>
         </div>
       </div>
 

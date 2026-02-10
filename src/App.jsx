@@ -12,6 +12,9 @@ import BuildPC from "./pages/BuildPC";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Account from "./pages/Account";
+import AccountSettings from "./pages/AccountSettings";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
 import AuthPage from "./pages/Auth";
 
 function App() {
@@ -30,6 +33,13 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />{" "}
                 <Route path="/account" element={<Account />} />{" "}
+                <Route path="/account/settings" element={<AccountSettings />} />
+                {" "}
+                <Route path="/account/orders" element={<MyOrders />} />{" "}
+                <Route
+                  path="/account/order/:orderId"
+                  element={<OrderDetails />}
+                />{" "}
                 <Route path="/auth" element={<AuthPage />} />
               </Routes>
             </main>

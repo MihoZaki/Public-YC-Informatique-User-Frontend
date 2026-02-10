@@ -68,7 +68,7 @@ const AuthPage = () => {
       <div className="card bg-base-100 w-full max-w-md shadow-xl border border-base-200">
         <div className="card-body">
           <h2 className="card-title text-2xl mb-4">
-            {isLogin ? "Log In" : "Sign Up"}
+            {isLogin ? "Login" : "Sign Up"}
           </h2>
 
           {error && <div className="alert alert-error mb-4">{error}</div>}
@@ -126,7 +126,8 @@ const AuthPage = () => {
 
           <div className="text-center">
             <p className="text-sm">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              {" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="link link-primary"
