@@ -1,543 +1,556 @@
-const mockProducts = [
-  {
-    id: "1",
-    name: "Intel Core i9-13900K", // Changed from 'title' to 'name'
-    description:
-      "High-performance desktop processor with integrated graphics capabilities. Features 24 cores and 32 threads for exceptional multitasking. Ideal for gaming, content creation, and demanding professional applications. Comes with a free burger (not really).",
-    short_description: "High-performance desktop processor", // Added short description
-    price_cents: 7999900, // Changed from 'price' to 'price_cents'
-    discounted_price_cents: 7199910, // Discounted price in cents
-    has_active_discount: true, // Indicates if discount is active
-    effective_discount_percentage: 10, // Effective discount percentage
-    total_calculated_fixed_discount_cents: 0, // Added for completeness
-    calculated_combined_percentage_factor: 1, // Added for completeness
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=i9-13900K+Back  ",
-      "https://placehold.co/300x300?text=i9-13900K+Top  ",
-      "https://placehold.co/300x300?text=i9-13900K+Box  ",
-    ],
-    category_id: "cpus", // Added category_id
-    category: "CPUs", // Kept category name for display
-    brand: "Intel",
-    stock_quantity: 15, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.8, // Added average rating
-    num_ratings: 128, // Added number of ratings
-    status: "active",
-    spec_highlights: { // Added spec highlights
-      cores: 24,
-      threads: 32,
-      base_clock_ghz: 3.0,
-      boost_clock_ghz: 5.8,
-      tdp_watts: 125,
-    },
-  },
-  {
-    id: "2",
-    name: "AMD Ryzen 9 7950X",
-    description:
-      "16-core desktop processor designed for enthusiasts and professionals. Offers excellent performance for multi-threaded tasks, video editing, and high-end gaming. Features advanced architecture for improved efficiency.",
-    short_description: "16-core desktop processor",
-    price_cents: 6999900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=Ryzen+9+7950X+Back  ",
-      "https://placehold.co/300x300?text=Ryzen+9+7950X+Top  ",
-      "https://placehold.co/300x300?text=Ryzen+9+7950X+Box  ",
-    ],
-    category_id: "cpus",
-    category: "CPUs",
-    brand: "AMD",
-    stock_quantity: 8, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.7,
-    num_ratings: 95,
-    status: "active",
-    spec_highlights: {
-      cores: 16,
-      threads: 32,
-      base_clock_ghz: 4.5,
-      boost_clock_ghz: 5.7,
-      tdp_watts: 170,
-    },
-  },
-  {
-    id: "3",
-    name: "NVIDIA GeForce RTX 4090",
-    description:
-      "High-end gaming graphics card delivering exceptional performance for 4K and 8K gaming. Features advanced ray tracing and AI-powered technologies for the ultimate visual experience.",
-    short_description: "High-end gaming graphics card",
-    price_cents: 15999900, // Changed from 'price' to 'price_cents'
-    discounted_price_cents: 14399910, // Discounted price in cents
-    has_active_discount: true, // Indicates if discount is active
-    effective_discount_percentage: 10, // Effective discount percentage
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=RTX+4090+Back  ",
-      "https://placehold.co/300x300?text=RTX+4090+Side  ",
-      "https://placehold.co/300x300?text=RTX+4090+Box  ",
-    ],
-    category_id: "gpus",
-    category: "GPUs",
-    brand: "NVIDIA",
-    stock_quantity: 5, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.9,
-    num_ratings: 203,
-    status: "active",
-    spec_highlights: {
-      vram_gb: 24,
-      cuda_cores: 16384,
-      boost_clock_mhz: 2520,
-      tdp_watts: 450,
-    },
-  },
-  {
-    id: "4",
-    name: "Corsair Vengeance LPX 32GB",
-    description:
-      "High-quality DDR4 RAM kit offering reliable performance and stability. Perfect for gaming and productivity. Compatible with Intel and AMD platforms.",
-    short_description: "DDR4 RAM kit",
-    price_cents: 1499900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=Vengeance+32GB+Back  ",
-      "https://placehold.co/300x300?text=Vengeance+32GB+Specs  ",
-      "https://placehold.co/300x300?text=Vengeance+32GB+Box  ",
-    ],
-    category_id: "ram",
-    category: "RAM",
-    brand: "Corsair",
-    stock_quantity: 50, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.5,
-    num_ratings: 450,
-    status: "active",
-    spec_highlights: {
-      size_gb: 32,
-      speed_mhz: 3200,
-      type: "DDR4",
-      voltage_v: 1.35,
-    },
-  },
-  {
-    id: "5",
-    name: "Samsung 980 PRO 1TB",
-    description:
-      "High-speed NVMe M.2 SSD for lightning-fast storage. Ideal for gaming, creative work, and reducing system boot times. Backed by Samsung's reliability.",
-    short_description: "NVMe M.2 SSD",
-    price_cents: 1299900, // Changed from 'price' to 'price_cents'
-    discounted_price_cents: 1039920, // Discounted price in cents
-    has_active_discount: true, // Indicates if discount is active
-    effective_discount_percentage: 20, // Effective discount percentage
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=980+PRO+1TB+Back  ",
-      "https://placehold.co/300x300?text=980+PRO+1TB+Specs  ",
-      "https://placehold.co/300x300?text=980+PRO+1TB+Box  ",
-    ],
-    category_id: "storage",
-    category: "Storage",
-    brand: "Samsung",
-    stock_quantity: 30, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.6,
-    num_ratings: 320,
-    status: "active",
-    spec_highlights: {
-      capacity_tb: 1,
-      interface: "NVMe M.2 2280",
-      sequential_read_mbs: 7000,
-      sequential_write_mbs: 5000,
-      type: "SSD",
-    },
-  },
-  {
-    id: "6",
-    name: "ASUS ROG Strix Z790-E",
-    description:
-      "Premium ATX motherboard for Intel CPUs. Features excellent VRM cooling, multiple M.2 slots, and support for high-speed RAM. Perfect for high-end builds.",
-    short_description: "ATX motherboard for Intel CPUs",
-    price_cents: 3499900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Back  ",
-      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Top  ",
-      "https://placehold.co/300x300?text=ROG+Strix+Z790-E+Box  ",
-    ],
-    category_id: "motherboards",
-    category: "Motherboards",
-    brand: "ASUS",
-    stock_quantity: 12, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.7,
-    num_ratings: 180,
-    status: "active",
-    spec_highlights: {
-      socket: "LGA1700",
-      form_factor: "ATX",
-      memory_slots: 4,
-      max_memory_speed_mhz: 5600,
-      max_memory_capacity_gb: 128,
-      pcie_slots: ["x16", "x4"],
-      m2_slots: 4,
-      sata_ports: 6,
-      chipset: "Intel Z790",
-    },
-  },
-  {
-    id: "7",
-    name: "Fractal Design Torrent",
-    description:
-      "Well-ventilated mid-tower ATX case designed for optimal airflow and cable management. Features tempered glass panels and a sleek design.",
-    short_description: "Mid-tower ATX case",
-    price_cents: 1999900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=Torrent+Back  ",
-      "https://placehold.co/300x300?text=Torrent+Interior  ",
-      "https://placehold.co/300x300?text=Torrent+Box  ",
-    ],
-    category_id: "cases",
-    category: "Cases",
-    brand: "Fractal Design",
-    stock_quantity: 20, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.8,
-    num_ratings: 155,
-    status: "active",
-    spec_highlights: {
-      form_factor: "ATX",
-      supported_form_factors: ["ATX", "Micro-ATX", "Mini-ITX"],
-      max_gpu_length_mm: 360,
-      max_cpu_cooler_height_mm: 165,
-      drive_bays_internal_35: 2,
-      drive_bays_internal_25: 2,
-    },
-  },
-  {
-    id: "8",
-    name: "Corsair RM850x (2021)",
-    description:
-      "80+ Gold certified power supply offering reliable and efficient power delivery. Fully modular design for easy cable management. Suitable for high-end systems.",
-    short_description: "80+ Gold certified power supply",
-    price_cents: 1299900, // Changed from 'price' to 'price_cents'
-    discounted_price_cents: 1169910, // Discounted price in cents
-    has_active_discount: true, // Indicates if discount is active
-    effective_discount_percentage: 10, // Effective discount percentage
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=RM850x+Back  ",
-      "https://placehold.co/300x300?text=RM850x+Specs  ",
-      "https://placehold.co/300x300?text=RM850x+Box  ",
-    ],
-    category_id: "psus",
-    category: "PSUs",
-    brand: "Corsair",
-    stock_quantity: 25, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.6,
-    num_ratings: 280,
-    status: "active",
-    spec_highlights: {
-      wattage_w: 850,
-      efficiency_rating: "80+ Gold",
-      modularity: "Fully Modular",
-      fan_size_mm: 135,
-      protections: ["OCP", "OVP", "UVP", "OTP", "SCP"],
-    },
-  },
-  {
-    id: "9",
-    name: "Logitech MX Master 3S",
-    description:
-      "Advanced wireless mouse with exceptional precision and comfort. Features a silent click wheel and long battery life. Perfect for productivity.",
-    short_description: "Wireless mouse",
-    price_cents: 1199900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=MX+Master+3S+Back  ",
-      "https://placehold.co/300x300?text=MX+Master+3S+Side  ",
-      "https://placehold.co/300x300?text=MX+Master+3S+Box  ",
-    ],
-    category_id: "peripherals",
-    category: "Peripherals",
-    brand: "Logitech",
-    stock_quantity: 22, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.7,
-    num_ratings: 310,
-    status: "active",
-    spec_highlights: {
-      sensor_dpi: 8000,
-      scroll_type: "MagSpeed",
-      battery_life_months: 4,
-      connectivity: ["USB Receiver", "Bluetooth"],
-      platform_compatibility: ["Windows", "macOS", "Linux"],
-    },
-  },
-  {
-    id: "10",
-    name: "ASRock Phantom Gaming D",
-    description:
-      "Budget-friendly AM4 motherboard offering solid performance for AMD Ryzen processors. Includes decent VRM cooling and sufficient expansion slots.",
-    short_description: "AMD AM4 motherboard",
-    price_cents: 1199900, // Changed from 'price' to 'price_cents'
-    // No discount fields - this product has no active discount
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=Phantom+Gaming+D+Back  ",
-      "https://placehold.co/300x300?text=Phantom+Gaming+D+Top  ",
-      "https://placehold.co/300x300?text=Phantom+Gaming+D+Box  ",
-    ],
-    category_id: "motherboards",
-    category: "Motherboards",
-    brand: "ASRock",
-    stock_quantity: 18, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.3,
-    num_ratings: 92,
-    status: "active",
-    spec_highlights: {
-      socket: "AM4",
-      form_factor: "ATX",
-      memory_slots: 4,
-      max_memory_speed_mhz: 4400,
-      max_memory_capacity_gb: 128,
-      pcie_slots: ["x16", "x1"],
-      m2_slots: 1,
-      sata_ports: 6,
-      chipset: "AMD B550",
-    },
-  },
-  {
-    id: "11",
-    name: "G.SKILL Trident Z5 RGB 64GB",
-    description:
-      "High-performance DDR5 RAM kit with RGB lighting. Optimized for AMD and Intel platforms. Delivers blazing speeds and stunning aesthetics.",
-    short_description: "DDR5 RAM kit",
-    price_cents: 3999900, // Changed from 'price' to 'price_cents'
-    discounted_price_cents: 3199920, // Discounted price in cents
-    has_active_discount: true, // Indicates if discount is active
-    effective_discount_percentage: 20, // Effective discount percentage
-    image_urls: [ // Define the image_urls array directly in mock data
-      "https://www.cnet.com/a/img/resize/0d1705ffe2225c545380a8c3d0958df139e07e6e/hub/2025/08/14/fcc6d8d8-3860-4a0e-9de5-38b0e8cd5bd4/velocity-micro-raptor-z95a-gaming-pc-1095667-edit.jpg?auto=webp&fit=crop&height=1200&width=1200  ", // Main/First image
-      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Back  ",
-      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Specs  ",
-      "https://placehold.co/300x300?text=Trident+Z5+RGB+64GB+Box  ",
-    ],
-    category_id: "ram",
-    category: "RAM",
-    brand: "G.SKILL",
-    stock_quantity: 7, // Changed from 'stock' to 'stock_quantity'
-    avg_rating: 4.8,
-    num_ratings: 87,
-    status: "active",
-    spec_highlights: {
-      size_gb: 64,
-      speed_mhz: 6000,
-      type: "DDR5",
-      voltage_v: 1.4,
-      rgb: true,
-    },
-  },
-];
+// src/services/api.js
+import axios from "axios";
+import { toast } from "sonner";
 
-const mockCategories = [
-  { id: "cpus", name: "CPUs", slug: "cpus", type: "component" },
-  { id: "gpus", name: "GPUs", slug: "gpus", type: "component" },
-  { id: "ram", name: "RAM", slug: "ram", type: "component" },
-  { id: "storage", name: "Storage", slug: "storage", type: "component" },
-  {
-    id: "motherboards",
-    name: "Motherboards",
-    slug: "motherboards",
-    type: "component",
-  },
-  { id: "cases", name: "Cases", slug: "cases", type: "component" },
-  { id: "psus", name: "PSUs", slug: "psus", type: "component" },
-  {
-    id: "peripherals",
-    name: "Peripherals",
-    slug: "peripherals",
-    type: "accessory",
-  },
-];
+// Base URL for the API (adjust this for your deployment environment)
+const API_BASE_URL = "http://localhost:8080/api"; // Replace with your backend URL
 
-// Mock user orders data
-const mockUserOrders = [
-  {
-    id: "12345",
-    createdAt: "2026-02-01T10:00:00Z",
-    status: "completed",
-    totalAmount: 2499.97,
-    subtotal: 2300.00,
-    taxAmount: 149.97,
-    shippingCost: 50.00,
-    items: [
-      {
-        productId: "1",
-        name: "Intel Core i9-13900K",
-        price: 799.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=i9-13900K"],
-      },
-      {
-        productId: "3",
-        name: "NVIDIA GeForce RTX 4090",
-        price: 599.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=RTX+4090"],
-      },
-      {
-        productId: "4",
-        name: "Corsair Vengeance LPX 32GB",
-        price: 149.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=Vengeance+32GB"],
-      },
-    ],
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
-    billingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
+// Create an Axios instance with defaults
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000, // Timeout after 30 seconds (increased from 10s)
+  headers: {
+    "Content-Type": "application/json",
   },
-  {
-    id: "12344",
-    createdAt: "2026-01-28T15:30:00Z",
-    status: "shipped",
-    totalAmount: 89.99,
-    subtotal: 79.99,
-    taxAmount: 5.00,
-    shippingCost: 5.00,
-    items: [
-      {
-        productId: "9",
-        name: "Logitech MX Master 3S",
-        price: 119.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=MX+Master+3S"],
-      },
-    ],
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
-    billingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
-  },
-  {
-    id: "12343",
-    createdAt: "2026-01-25T09:15:00Z",
-    status: "processing",
-    totalAmount: 1200.00,
-    subtotal: 1100.00,
-    taxAmount: 70.00,
-    shippingCost: 30.00,
-    items: [
-      {
-        productId: "2",
-        name: "AMD Ryzen 9 7950X",
-        price: 699.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=Ryzen+9+7950X"],
-      },
-      {
-        productId: "6",
-        name: "ASUS ROG Strix Z790-E",
-        price: 349.99,
-        quantity: 1,
-        image_urls: ["https://placehold.co/100x100?text=ROG+Strix+Z790-E"],
-      },
-    ],
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
-    billingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "Algiers",
-      state: "Algeria",
-      zipCode: "16000",
-      country: "Algeria",
-    },
-  },
-];
+  withCredentials: true, // Important: Include cookies (like refresh_token) in requests
+});
 
-// Fetch categories from mock data
-export const fetchCategories = async () => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  return mockCategories;
+// --- Request Interceptor: Attach Access Token (EXCEPT for auth endpoints) ---
+apiClient.interceptors.request.use(
+  (config) => {
+    // Don't attach the access token to login, logout, or refresh endpoints
+    if (
+      config.url.endsWith("/v1/auth/login") ||
+      config.url.endsWith("/v1/auth/refresh") ||
+      config.url.endsWith("/v1/auth/logout")
+    ) {
+      console.log(
+        "[API Interceptor] Skipping access token header for:",
+        config.url,
+      );
+      return config;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log(
+        "[API Interceptor] No access token found for request:",
+        config.url,
+      );
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// --- Response Interceptor: Handle 401 and Attempt Refresh ---
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
 };
 
-// Fetch products from mock data
-export const fetchProducts = async () => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return mockProducts;
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check if the error is a 401 UNAUTHORIZED
+    if (error.response?.status === 401) {
+      // CRITICAL FIX: Do NOT attempt refresh if the original request was login, logout, refresh, or already retried
+      if (
+        originalRequest.url.endsWith("/v1/auth/login") ||
+        originalRequest.url.endsWith("/v1/auth/logout") ||
+        originalRequest.url.endsWith("/v1/auth/refresh") ||
+        originalRequest._retry
+      ) {
+        console.log(
+          "[API Interceptor] 401 on auth endpoint or retry attempt. Rejecting original request.",
+          originalRequest.url,
+        );
+        return Promise.reject(error);
+      }
+
+      // Proceed with refresh logic only for non-auth requests
+      if (isRefreshing) {
+        // If a refresh is already in progress, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true; // Mark this request as retried
+      isRefreshing = true;
+
+      try {
+        console.log("[API Interceptor] Calling refresh endpoint...");
+        // Attempt to refresh the token (cookies should be sent due to withCredentials: true)
+        const refreshResponse = await apiClient.post("/v1/auth/refresh");
+        const newAccessToken = refreshResponse.data?.data?.access_token; // Extract from {  { access_token: ... } }
+
+        if (!newAccessToken) {
+          throw new Error(
+            `Refresh response missing 'access_token'. Got: ${
+              JSON.stringify(refreshResponse.data)
+            }`,
+          );
+        }
+
+        console.log(
+          "[API Interceptor] New access token received.",
+        );
+
+        // Update the access token in localStorage
+        localStorage.setItem("access_token", newAccessToken);
+
+        // Process queued requests with the new token
+        processQueue(null, newAccessToken);
+
+        // Retry the original request that failed with 401
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        isRefreshing = false;
+        console.log(
+          "[API Interceptor] Retrying original request after refresh.",
+        );
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        console.error("[API Interceptor] Refresh failed:", refreshError);
+        // Clear tokens and logout user if refresh fails
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        processQueue(refreshError, null);
+        isRefreshing = false;
+
+        // Optionally redirect to login page globally here if needed
+        // window.location.href = '/auth/login';
+        // Or show a toast
+        toast.error("Session expired. Please log in again.");
+
+        // Reject the original request with the refresh error
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // If the error is not a 401, or if it was a 401 but handled above, reject the promise
+    return Promise.reject(error);
+  },
+);
+
+// --- Authentication Endpoints ---
+/**
+ * Registers a new user.
+ * @param {Object} userData - The user's registration data (email, password, full_name).
+ * @returns {Promise<Object>} The response data containing the new user info.
+ */
+export const registerUser = async (userData) => {
+  try {
+    const response = await apiClient.post("/v1/auth/register", userData);
+    return response.data; // Returns { success: true,  { id, email, full_name, ... } }
+  } catch (error) {
+    console.error("Error registering user:", error);
+    throw error; // Re-throw to be handled by caller
+  }
 };
 
-// Fetch a single product by ID from mock data
-// src/services/api.js (Check this part)
+/**
+ * Logs in a user and returns an access token.
+ * @param {Object} credentials - The user's login credentials (email, password).
+ * @returns {Promise<Object>} The response data containing access token and user info.
+ */
+export const loginUser = async (credentials) => {
+  try {
+    const response = await apiClient.post("/v1/auth/login", credentials);
+    return response.data; // Returns { success: true,  { access_token, user: { id, email, full_name, ... } } }
+  } catch (error) {
+    console.error("Error logging in:", error);
+    throw error;
+  }
+};
+
+/**
+ * Logs out the user by revoking the refresh token (assumes refresh token is handled via cookies).
+ * @returns {Promise<void>} Resolves on successful logout.
+ */
+export const logoutUser = async () => {
+  try {
+    // Logout is a POST request, refresh token is sent via cookie
+    await apiClient.post("/v1/auth/logout");
+    // Response is 204 No Content, no data to return
+  } catch (error) {
+    console.error("Error logging out:", error);
+    throw error;
+  }
+};
+
+// --- Public Products Endpoints ---
+/**
+ * Fetches a paginated list of products.
+ * @param {number} page - Page number (1-indexed).
+ * @param {number} limit - Number of products per page.
+ * @returns {Promise<Object>} The response data containing products array, pagination info, etc.
+ */
+export const fetchProducts = async (page = 1, limit = 20) => {
+  try {
+    const response = await apiClient.get("/v1/products", {
+      params: {
+        page,
+        limit,
+      },
+    });
+    // The API returns {  [...], page, limit, total, total_pages }
+    // Return the *entire* response object. The component will destructure it.
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches details of a specific product by its ID.
+ * @param {string} id - The UUID of the product.
+ * @returns {Promise<Object>} The response data containing the product details.
+ */
 export const fetchProductById = async (id) => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  const product = mockProducts.find((p) => p.id === id); // This should find the product object from the array
-  if (!product) {
-    throw new Error(`Product with id ${id} not found.`);
+  try {
+    const response = await apiClient.get(`/v1/products/${id}`);
+    // The API returns the product object directly
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    throw error;
   }
-  // Return the product object as it exists in the mock data (containing description, spec_highlights, etc.)
-  return product; // This should return the full product object
-};
-// --- Mock functions for user-specific data ---
-
-// Fetch orders for the current user (mock)
-export const fetchUserOrders = async (userId) => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  // In a real app, you'd filter by userId here if multiple users existed
-  return mockUserOrders;
 };
 
-// Fetch a specific order by its ID (mock)
+/**
+ * Searches for products based on various criteria.
+ * @param {Object} searchParams - Object containing search parameters (query, category_id, brand, min_price, max_price, in_stock_only, include_discounted_only, page, limit, spec_filter).
+ * @returns {Promise<Object>} The response data containing matching products array, pagination info, etc.
+ */
+export const searchProducts = async (searchParams = {}) => {
+  try {
+    // Default parameters
+    const params = {
+      page: 1,
+      limit: 20,
+      ...searchParams, // Spread the provided search parameters
+    };
+
+    // Convert boolean parameters to strings as expected by the API
+    if (params.in_stock_only !== undefined) {
+      params.in_stock_only = String(params.in_stock_only).toLowerCase();
+    }
+    if (params.include_discounted_only !== undefined) {
+      params.include_discounted_only = String(params.include_discounted_only)
+        .toLowerCase();
+    }
+
+    const response = await apiClient.get("/v1/products/search", { params });
+    // The API returns {  [...], page, limit, total, total_pages, ... }
+    // Return the *entire* response object. The component will destructure it.
+    return response.data;
+  } catch (error) {
+    console.error("Error searching products:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all product categories.
+ * @returns {Promise<Array>} An array of category objects.
+ */
+export const fetchCategories = async () => {
+  try {
+    const response = await apiClient.get("/v1/products/categories");
+    // The API returns the array of categories directly
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches details of a specific category by its ID.
+ * @param {string} id - The UUID of the category.
+ * @returns {Promise<Object>} The response data containing the category details.
+ */
+export const fetchCategoryById = async (id) => {
+  try {
+    const response = await apiClient.get(`/v1/products/categories/${id}`);
+    // The API returns the category object directly
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching category with id ${id}:`, error);
+    throw error;
+  }
+};
+
+// --- User Cart Endpoints (Require Authorization Token) ---
+// Note: The interceptor handles adding the Authorization header automatically if token exists in localStorage
+
+/**
+ * Fetches the current user's cart.
+ * @returns {Promise<Object>} The response data containing the cart details.
+ */
+export const fetchUserCart = async () => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.get("/v1/cart");
+    return response.data; // Returns the cart object
+  } catch (error) {
+    console.error("Error fetching user cart:", error);
+    throw error;
+  }
+};
+
+/**
+ * Adds an item to the current user's cart.
+ * @param {string} productId - The UUID of the product to add.
+ * @param {number} quantity - The quantity to add.
+ * @returns {Promise<Object>} The response data containing the added cart item details.
+ */
+export const addItemToCart = async (productId, quantity) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.post("/v1/cart/items", {
+      product_id: productId,
+      quantity: quantity,
+    });
+    return response.data; // Returns the added/updated cart item object
+  } catch (error) {
+    console.error("Error adding item to cart:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the quantity of an item in the current user's cart.
+ * @param {string} itemId - The UUID of the cart item to update.
+ * @param {number} quantity - The new quantity.
+ * @returns {Promise<Object>} The response data containing the updated cart item details.
+ */
+export const updateCartItem = async (itemId, quantity) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.put(`/v1/cart/items/${itemId}`, {
+      quantity: quantity,
+    });
+    return response.data; // Returns the updated cart item object
+  } catch (error) {
+    console.error("Error updating cart item:", error);
+    throw error;
+  }
+};
+
+/**
+ * Removes an item from the current user's cart.
+ * @param {string} itemId - The UUID of the cart item to remove.
+ * @returns {Promise<void>} Resolves on successful removal.
+ */
+export const removeCartItem = async (itemId) => {
+  // Token is automatically added by interceptor if present
+  try {
+    await apiClient.delete(`/v1/cart/items/${itemId}`);
+    // Response is 204 No Content, no data to return
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    throw error;
+  }
+};
+
+/**
+ * Clears the current user's cart.
+ * @returns {Promise<void>} Resolves on successful clearing.
+ */
+export const clearUserCart = async () => {
+  // Token is automatically added by interceptor if present
+  try {
+    await apiClient.delete("/v1/cart");
+    // Response is 204 No Content, no data to return
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    throw error;
+  }
+};
+
+// --- User Orders Endpoints (Require Authorization Token) ---
+/**
+ * Creates a new order from the user's cart.
+ * @param {Object} orderData - The order details (delivery_service_id, shipping_address, notes).
+ * @returns {Promise<Object>} The response data containing the created order details.
+ */
+export const createOrder = async (orderData) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.post("/v1/orders", orderData);
+    return response.data; // Returns the created order object
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches details of a specific order belonging to the user.
+ * @param {string} orderId - The UUID of the order.
+ * @returns {Promise<Object>} The response data containing the order details.
+ */
 export const fetchOrderById = async (orderId) => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  const order = mockUserOrders.find((o) => o.id === orderId);
-  if (!order) {
-    throw new Error(`Order with id ${orderId} not found.`);
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.get(`/v1/orders/${orderId}`);
+    return response.data; // Returns the order object
+  } catch (error) {
+    console.error(`Error fetching order with id ${orderId}:`, error);
+    throw error;
   }
-  return order;
 };
 
-// --- End of mock functions ---
+/**
+ * Fetches a paginated list of orders for the current user.
+ * @param {number} page - Page number (1-indexed).
+ * @param {number} limit - Number of orders per page.
+ * @returns {Promise<Object>} The response data containing orders array, pagination info, etc.
+ */
+export const fetchUserOrders = async (page = 1, limit = 20) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.get("/v1/orders", {
+      params: {
+        page,
+        limit,
+      },
+    });
+    return response.data; // Returns {  [...], page, limit, total, total_pages }
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    throw error;
+  }
+};
+
+// --- User Profile Endpoints (Require Authorization Token) ---
+// Assuming these endpoints exist and follow the pattern seen in admin
+// Check actual API docs for exact paths and payload structure if they differ from admin
+/**
+ * Fetches the current user's profile information.
+ * @returns {Promise<Object>} The response data containing the user details.
+ */
+export const fetchUserProfile = async () => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.get("/v1/user/profile"); // Check actual path
+    return response.data.data; // Assuming response is { success: true,  { ...user_data... } }
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the current user's profile information (name, email).
+ * @param {Object} profileData - The profile data to update.
+ * @returns {Promise<Object>} The response data containing the updated user details.
+ */
+export const updateUserProfile = async (profileData) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.put("/v1/user/profile", profileData); // Check actual path
+    return response.data.data; // Assuming response is { success: true,  { ...updated_user_data... } }
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
+  }
+};
+
+/**
+ * Changes the current user's password.
+ * @param {Object} passwordData - The password change data (current_password, new_password, confirm_password).
+ * @returns {Promise<Object>} The response data confirming the password change.
+ */
+export const changeUserPassword = async (passwordData) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.put(
+      "/v1/user/password/change",
+      passwordData,
+    ); // Check actual path
+    return response.data; // Assuming response is { success: true, message: "Password changed successfully" }
+  } catch (error) {
+    console.error("Error changing user password:", error);
+    throw error;
+  }
+};
+
+// --- Delivery Options Endpoint (Require Authorization Token) ---
+/**
+ * Fetches the available delivery options for the user.
+ * @returns {Promise<Array>} An array of delivery option objects.
+ */
+export const fetchDeliveryOptions = async () => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.get("/v1/delivery-options");
+    return response.data; // Returns the array of delivery options
+  } catch (error) {
+    console.error("Error fetching delivery options:", error);
+    throw error;
+  }
+};
+
+// --- Reviews Endpoint (Require Authorization Token) ---
+/**
+ * Submits a review for a product.
+ * @param {string} productId - The UUID of the product.
+ * @param {number} rating - The rating (1-5).
+ * @returns {Promise<Object>} The response data containing the created review details.
+ */
+export const submitReview = async (productId, rating) => {
+  // Token is automatically added by interceptor if present
+  try {
+    const response = await apiClient.post("/v1/reviews", {
+      product_id: productId,
+      rating: rating,
+    });
+    return response.data; // Returns the created review object
+  } catch (error) {
+    console.error("Error submitting review:", error);
+    throw error;
+  }
+};
+
+// --- Health Check Endpoint ---
+/**
+ * Checks the health of the API service.
+ * @returns {Promise<Object>} The response data containing the health status.
+ */
+export const checkHealth = async () => {
+  try {
+    const response = await apiClient.get("/health");
+    return response.data; // Returns { status: "ok", timestamp: "..." }
+  } catch (error) {
+    console.error("Error checking health:", error);
+    throw error; // Might throw a 500 error response
+  }
+};
+
+export default apiClient;

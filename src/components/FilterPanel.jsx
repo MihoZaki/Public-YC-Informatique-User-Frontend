@@ -1,48 +1,19 @@
 // src/components/FilterPanel.jsx
-import React, { useEffect, useState } from "react";
-import { fetchCategories } from "../services/api"; // Import fetchCategories
+import React from "react";
 
-const FilterPanel = ({ filters, onFilterChange }) => {
-  // Removed categories prop as we fetch them here
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true); // Optional loading state for categories
+const FilterPanel = (
+  { filters, onFilterChange, categories = [], loading = false },
+) => {
+  // Removed useEffect and fetchCategories logic as data is now passed down
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        setLoading(true); // Optional
-        const data = await fetchCategories();
-        // Map to the format expected by the select (id, name)
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories for filter:", error);
-        // Optionally, set an error state or show a message
-      } finally {
-        setLoading(false); // Optional
-      }
-    };
-
-    loadCategories();
-  }, []);
-
-  if (loading) {
-    // Optional: Show loading state for categories
-    return (
-      <div className="bg-base-100 p-4 rounded-lg shadow-md">
-        <div className="skeleton h-4 w-1/4 mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-10 w-full mb-4"></div>
-        <div className="skeleton h-8 w-full"></div>
-      </div>
-    );
-  }
+  // Removed separate loading state as it's handled in the parent component (Products.jsx)
+  // The skeleton UI in Products.jsx covers the initial load of both products and categories
 
   return (
     <div className="bg-base-100 p-4 rounded-lg shadow-md border border-neutral-content">
       <h3 className="font-bold text-lg mb-4 ">Filters</h3>
 
-      {/* Category Filter - Updated to use fetched categories */}
+      {/* Category Filter - Uses passed down categories */}
       <div className="mb-4">
         <label className="label">
           <span className="label-text ">Category</span>
@@ -57,8 +28,8 @@ const FilterPanel = ({ filters, onFilterChange }) => {
           </option>
           {categories.map((category) => (
             <option
-              key={category.id}
-              value={category.name}
+              key={category.id} // Use category.id from the fetched data
+              value={category.name} // Use category.name for the filter value (matches the filter logic in Products.jsx)
               className="bg-base-100"
             >
               {category.name}
