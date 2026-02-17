@@ -22,7 +22,15 @@ const Account = () => {
         setRecentOrders(response.data || []);
       } catch (error) {
         console.error("Error fetching recent orders:", error);
-        toast.error("Failed to load recent orders. Please try again.");
+
+        // Handle unauthorized error specifically
+        if (error.response?.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          // Optionally trigger logout
+          logout();
+        } else {
+          toast.error("Failed to load recent orders. Please try again.");
+        }
         setRecentOrders([]); // Set to empty array on error
       } finally {
         setLoading(false);
@@ -30,7 +38,7 @@ const Account = () => {
     };
 
     loadRecentOrders();
-  }, [user]);
+  }, [user, logout]);
 
   // If no user is logged in, maybe redirect or show a message
   // For now, let's just render nothing if not logged in, assuming the router handles protection
@@ -159,7 +167,7 @@ const Account = () => {
                       <thead>
                         <tr>
                           <th className="font-bold">Order #</th>
-                          <th className="font-bold">Ordered Date</th>
+                          <th className="font-bold">Date</th>
                           <th className="font-bold">Recent Update</th>
                           <th className="font-bold">Status</th>
                           <th className="font-bold">Total</th>

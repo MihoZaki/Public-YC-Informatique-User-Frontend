@@ -12,7 +12,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Important: Include cookies (like refresh_token) in requests
+  withCredentials: true,
 });
 
 // --- Request Interceptor: Attach Access Token (EXCEPT for auth endpoints) ---
@@ -69,7 +69,6 @@ apiClient.interceptors.response.use(
 
     // Check if the error is a 401 UNAUTHORIZED
     if (error.response?.status === 401) {
-      // CRITICAL FIX: Do NOT attempt refresh if the original request was login, logout, refresh, or already retried
       if (
         originalRequest.url.endsWith("/v1/auth/login") ||
         originalRequest.url.endsWith("/v1/auth/logout") ||
@@ -105,7 +104,7 @@ apiClient.interceptors.response.use(
         console.log("[API Interceptor] Calling refresh endpoint...");
         // Attempt to refresh the token (cookies should be sent due to withCredentials: true)
         const refreshResponse = await apiClient.post("/v1/auth/refresh");
-        const newAccessToken = refreshResponse.data?.data?.access_token; // Extract from {  { access_token: ... } }
+        const newAccessToken = refreshResponse.data?.access_token; // Extract from {  { access_token: ... } }
 
         if (!newAccessToken) {
           throw new Error(
@@ -265,7 +264,6 @@ export const searchProducts = async (searchParams = {}) => {
     }
 
     const response = await apiClient.get("/v1/products/search", { params });
-    console.log("response is", response);
     return response.data;
   } catch (error) {
     console.error("Error searching products:", error);

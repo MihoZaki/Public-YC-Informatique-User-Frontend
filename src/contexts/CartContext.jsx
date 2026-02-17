@@ -73,10 +73,19 @@ export const CartProvider = ({ children }) => {
         setCartFromBackend(cartItemsFromBackend);
       }
     } catch (error) {
-      console.error("Failed to sync cart with backend:", error);
-      // Don't clear cart on sync failure - maintain current state
-      // Clear the cart if there's an error (user not logged in)
-      clearCart();
+      // Handle unauthorized error specifically
+      if (error.response?.status === 401) {
+        // User is not authorized, which might mean token expired
+        // Don't clear cart in this case, as it might be a guest cart
+        console.warn(
+          "Cart sync failed due to authorization error, continuing with current cart",
+        );
+      } else {
+        console.error("Failed to sync cart with backend:", error);
+        // Don't clear cart on sync failure - maintain current state
+        // Clear the cart if there's an error (user not logged in)
+        clearCart();
+      }
     }
   };
 
@@ -120,8 +129,13 @@ export const CartProvider = ({ children }) => {
       // After adding to backend, sync the entire cart to ensure consistency
       await syncCartWithBackend();
     } catch (error) {
-      console.error("Failed to add item to cart:", error);
-      toast.error("Failed to add item to cart. Please try again.");
+      // Handle unauthorized error specifically
+      if (error.response?.status === 401) {
+        toast.error("Please log in to add items to your cart.");
+      } else {
+        console.error("Failed to add item to cart:", error);
+        toast.error("Failed to add item to cart. Please try again.");
+      }
     }
   };
 
@@ -141,8 +155,13 @@ export const CartProvider = ({ children }) => {
       // After removing from backend, sync the entire cart to ensure consistency
       await syncCartWithBackend();
     } catch (error) {
-      console.error("Failed to remove item from cart:", error);
-      toast.error("Failed to remove item from cart. Please try again.");
+      // Handle unauthorized error specifically
+      if (error.response?.status === 401) {
+        toast.error("Please log in to manage your cart.");
+      } else {
+        console.error("Failed to remove item from cart:", error);
+        toast.error("Failed to remove item from cart. Please try again.");
+      }
     }
   };
 
@@ -167,8 +186,13 @@ export const CartProvider = ({ children }) => {
         await syncCartWithBackend();
       }
     } catch (error) {
-      console.error("Failed to update quantity:", error);
-      toast.error("Failed to update quantity. Please try again.");
+      // Handle unauthorized error specifically
+      if (error.response?.status === 401) {
+        toast.error("Please log in to update your cart.");
+      } else {
+        console.error("Failed to update quantity:", error);
+        toast.error("Failed to update quantity. Please try again.");
+      }
     }
   };
 
@@ -184,8 +208,13 @@ export const CartProvider = ({ children }) => {
       // Update local store
       clearCart();
     } catch (error) {
-      console.error("Failed to clear cart:", error);
-      toast.error("Failed to clear cart. Please try again.");
+      // Handle unauthorized error specifically
+      if (error.response?.status === 401) {
+        toast.error("Please log in to clear your cart.");
+      } else {
+        console.error("Failed to clear cart:", error);
+        toast.error("Failed to clear cart. Please try again.");
+      }
     }
   };
 

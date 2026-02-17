@@ -19,7 +19,7 @@ const AuthPage = () => {
 
   // Redirect if already logged in
   if (user) {
-    navigate("/account"); // Or wherever you want to go after login
+    navigate("/"); // Or wherever you want to go after login
     return null; // Don't render anything while navigating
   }
 
