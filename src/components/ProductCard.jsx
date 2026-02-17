@@ -7,12 +7,13 @@ import {
   ShoppingCartIcon,
   StarIcon,
 } from "@heroicons/react/24/solid";
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/CartContext"; // Still need this to sync local cart
+// Remove this import: import { addItemToCart } from "../services/api"; // Import the API function
 
 const ProductCard = ({ product }) => {
   const navigation = useNavigate();
   const savedTheme = localStorage.getItem("theme");
-  const { addToCart } = useCart();
+  const { addToCart: addToLocalCart } = useCart(); // This now calls the CartContext function
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -22,21 +23,9 @@ const ProductCard = ({ product }) => {
     setIsAdded(false);
 
     try {
-      // Ensure the image added to the cart is the first one from the product's image_urls
-      const imageForCart = product.image_urls ? product.image_urls[0] : ""; // Fallback to empty string if no image_urls
+      // Use the CartContext function which handles API call and local state
+      await addToLocalCart(product);
 
-      // Determine price to add to cart based on discount (using new field names)
-      const priceForCart = product.has_active_discount &&
-          product.discounted_price_cents !== undefined
-        ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
-        : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
-
-      await addToCart({
-        ...product,
-        quantity: 1,
-        image: imageForCart,
-        price: priceForCart,
-      }); // Pass the correct image and price
       setIsAdded(true);
       toast.success(`"${product.name}" added to cart!`); // Use product.name
       setTimeout(() => {

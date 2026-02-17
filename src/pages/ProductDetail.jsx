@@ -3,9 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth to check if user is logged in
-import { fetchProductById } from "../services/api"; // Import the new API function
+import {
+  fetchProductById,
+  searchProducts,
+  submitReview,
+} from "../services/api"; // Import the API functions (removed addItemToCart)
 import { toast } from "sonner"; // Import toast
 import { StarIcon } from "@heroicons/react/24/solid"; // Import StarIcon for the rating display/form
+import ProductCard from "../components/ProductCard"; // Import ProductCard for related products
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,57 +20,28 @@ const ProductDetail = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0); // Track the index of the selected image from the array
   const [quantity, setQuantity] = useState(1);
   const { user } = useAuth(); // Get the current user from auth context
-  const [reviews, setReviews] = useState([]); // State to hold reviews (mocked for now)
+  const [reviews, setReviews] = useState([]); // State to hold reviews
   const [newReviewRating, setNewReviewRating] = useState(0); // State for the new review's star rating
   const [isSubmittingReview, setIsSubmittingReview] = useState(false); // Loading state for review submission
-  const { addToCart } = useCart();
-
-  // Mock function to submit a review (replace with real API call later)
-  const submitReview = async (productId, rating) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Create a mock review object (in a real app, this comes from the server)
-    const mockReview = {
-      id: Date.now(), // Use timestamp as a simple mock ID
-      userId: user.id, // Use the logged-in user's ID
-      userName: user.name, // Use the logged-in user's name
-      rating: rating,
-      createdAt: new Date().toISOString(), // Use current timestamp
-    };
-
-    // In a real app, you'd POST this to an endpoint like /api/products/{id}/reviews
-    // and then fetch the updated reviews list.
-    // For now, we'll just add it to the local state.
-    setReviews((prev) => [mockReview, ...prev]); // Add new review to the beginning of the list
-
-    // Update the product's avg_rating and num_ratings locally (this is a simplification)
-    // In a real app, you'd refetch the product data or update it based on the server response.
-    const totalRating = (product.avg_rating * product.num_ratings) + rating;
-    const newNumRatings = product.num_ratings + 1;
-    const newAvgRating = totalRating / newNumRatings;
-
-    setProduct((prev) => ({
-      ...prev,
-      avg_rating: parseFloat(newAvgRating.toFixed(2)), // Round to 2 decimal places
-      num_ratings: newNumRatings,
-    }));
-
-    return mockReview; // Return the created review object (or response from server)
-  };
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedProductsLoading, setRelatedProductsLoading] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // Loading state for add to cart
+  const { addToCart: addToLocalCart } = useCart(); // This calls the CartContext function
 
   useEffect(() => {
     const loadProduct = async () => {
       setLoading(true); // Start loading
       setError(null); // Clear previous errors
       try {
-        const data = await fetchProductById(id); // Fetch from real API (now using mock data)
+        const data = await fetchProductById(id); // Fetch from real API
         setProduct(data);
         // Reset selected image index when a new product loads
         setSelectedImageIndex(0);
 
-        // Mock loading reviews (in a real app, fetch from /api/products/{id}/reviews)
-        // For now, just initialize with an empty array or some mock data if needed
+        // Load related products after product is loaded
+        loadRelatedProducts(data.category_id);
+
+        // Initialize reviews state (will be populated separately if needed)
         setReviews([]); // Initialize with empty array
       } catch (err) {
         console.error(`Error fetching product with id ${id}:`, err);
@@ -81,6 +57,27 @@ const ProductDetail = () => {
     loadProduct();
   }, [id]);
 
+  const loadRelatedProducts = async (categoryId) => {
+    if (!categoryId) return;
+
+    setRelatedProductsLoading(true);
+    try {
+      const response = await searchProducts({
+        category_id: categoryId,
+        limit: 6,
+        page: 1,
+      });
+      // Filter out the current product from results
+      const filteredProducts = response.data.filter((p) => p.id !== id);
+      setRelatedProducts(filteredProducts);
+    } catch (err) {
+      console.error("Error fetching related products:", err);
+      setRelatedProducts([]);
+    } finally {
+      setRelatedProductsLoading(false);
+    }
+  };
+
   // Calculate the current image source based on the selected index and the product's image_urls
   const currentImageSrc =
     product && product.image_urls && product.image_urls[selectedImageIndex]
@@ -89,23 +86,23 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => { // Make function async
     if (product) {
+      setIsAddingToCart(true);
       try {
-        // Determine price to add to cart based on discount
-        const priceForCart = product.has_active_discount &&
-            product.discounted_price_cents !== undefined
-          ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
-          : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
-
-        await addToCart({
+        // Use the CartContext function which handles API call and local state
+        // Create a product object with the selected quantity
+        const productToAdd = {
           ...product,
-          quantity,
-          image: product.image_urls[0], // Use the first image for the cart
-          price: priceForCart, // Use the calculated price
-        });
+          quantity, // Use the selected quantity from state
+        };
+
+        await addToLocalCart(productToAdd);
+
         toast.success(`"${product.name}" added to cart!`); // Show success toast using product.name
       } catch (error) {
         console.error("Failed to add item to cart:", error);
         toast.error("Failed to add item to cart. Please try again."); // Show error toast
+      } finally {
+        setIsAddingToCart(false);
       }
     }
   };
@@ -124,8 +121,22 @@ const ProductDetail = () => {
 
     setIsSubmittingReview(true);
     try {
+      // Call the actual API to submit the review
       await submitReview(product.id, newReviewRating);
       toast.success("Rating submitted successfully!");
+
+      // Update the product's avg_rating and num_ratings locally after successful submission
+      const totalRating = (product.avg_rating * product.num_ratings) +
+        newReviewRating;
+      const newNumRatings = product.num_ratings + 1;
+      const newAvgRating = totalRating / newNumRatings;
+
+      setProduct((prev) => ({
+        ...prev,
+        avg_rating: parseFloat(newAvgRating.toFixed(2)), // Round to 2 decimal places
+        num_ratings: newNumRatings,
+      }));
+
       // Reset the form
       setNewReviewRating(0);
     } catch (error) {
@@ -310,6 +321,7 @@ const ProductDetail = () => {
               <button
                 className="btn btn-sm"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={isAddingToCart} // Disable when adding to cart
               >
                 -
               </button>
@@ -317,6 +329,7 @@ const ProductDetail = () => {
               <button
                 className="btn btn-sm"
                 onClick={() => setQuantity(quantity + 1)}
+                disabled={isAddingToCart} // Disable when adding to cart
               >
                 +
               </button>
@@ -324,8 +337,19 @@ const ProductDetail = () => {
             <button
               className="btn btn-primary flex-1"
               onClick={handleAddToCart}
+              disabled={isAddingToCart} // Disable when adding to cart
             >
-              Add to Cart
+              {isAddingToCart
+                ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs mr-2">
+                    </span>
+                    Adding...
+                  </>
+                )
+                : (
+                  "Add to Cart"
+                )}
             </button>
           </div>
 
@@ -406,9 +430,35 @@ const ProductDetail = () => {
       {/* Related Products */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Related products would go here */}
-        </div>
+        {relatedProductsLoading
+          ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="card bg-base-100 shadow-xl">
+                  <div className="skeleton h-48 w-full"></div>
+                  <div className="card-body">
+                    <div className="skeleton h-4 w-3/4 mb-2"></div>
+                    <div className="skeleton h-4 w-full mb-2"></div>
+                    <div className="skeleton h-4 w-1/2 mb-4"></div>
+                    <div className="skeleton h-8 w-full"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+          : relatedProducts.length > 0
+          ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
+          )
+          : (
+            <p className="text-center text-gray-500">
+              No related products found.
+            </p>
+          )}
       </div>
     </div>
   );

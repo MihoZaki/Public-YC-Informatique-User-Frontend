@@ -53,62 +53,65 @@ const CartModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="mt-4 max-h-96 overflow-y-auto">
-                  {cart.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500">
-                      Your cart is empty
-                    </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {cart.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center space-x-4 p-3 border border-base-200 rounded-lg"
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-16 h-16 object-contain"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {item.title}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              DZD {item.price}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              className="btn btn-xs"
-                              onClick={() =>
-                                updateQuantity(
-                                  item.id,
-                                  Math.max(1, item.quantity - 1),
-                                )
-                              }
-                            >
-                              -
-                            </button>
-                            <span className="text-sm">{item.quantity}</span>
-                            <button
-                              className="btn btn-xs"
-                              onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
-                              }
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            className="btn btn-error btn-xs"
-                            onClick={() => removeFromCart(item.id)}
+                  {cart.length === 0
+                    ? (
+                      <p className="text-center py-8 text-gray-500">
+                        Your cart is empty
+                      </p>
+                    )
+                    : (
+                      <div className="space-y-4">
+                        {cart.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center space-x-4 p-3 border border-base-200 rounded-lg"
                           >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            <img
+                              src={item.image}
+                              alt={item.name} // Changed from item.title to item.name
+                              className="w-16 h-16 object-contain"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {item.name}{" "}
+                                {/* Changed from item.title to item.name */}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                DZD {item.price}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                className="btn btn-xs"
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.id,
+                                    Math.max(1, item.quantity - 1),
+                                  )}
+                              >
+                                -
+                              </button>
+                              <span className="text-sm">{item.quantity}</span>
+                              {" "}
+                              {/* This should now show the correct quantity */}
+                              <button
+                                className="btn btn-xs"
+                                onClick={() =>
+                                  updateQuantity(item.id, item.quantity + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
+                            <button
+                              className="btn btn-error btn-xs"
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </div>
 
                 {cart.length > 0 && (

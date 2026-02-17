@@ -351,7 +351,7 @@ export const addItemToCart = async (productId, quantity) => {
 export const updateCartItem = async (itemId, quantity) => {
   // Token is automatically added by interceptor if present
   try {
-    const response = await apiClient.put(`/v1/cart/items/${itemId}`, {
+    const response = await apiClient.patch(`/v1/cart/items/${itemId}`, {
       quantity: quantity,
     });
     return response.data; // Returns the updated cart item object
