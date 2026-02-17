@@ -1,5 +1,5 @@
 // src/pages/Products.jsx
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ProductCard from "../components/ProductCard";
@@ -10,15 +10,36 @@ import {
 } from "../services/api";
 import { toast } from "sonner";
 
+// Mapping between URL-friendly names and actual category names from backend
+const CATEGORY_URL_TO_NAME = {
+  cpus: "CPU",
+  gpus: "GPU",
+  ram: "RAM",
+  storage: "Storage",
+  motherboards: "Motherboard",
+  cases: "Case",
+  psus: "Power Supply",
+  peripherals: "Accessories",
+  coolers: "Cooler",
+  laptops: "Laptop",
+};
+
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
   // State for filters (managed locally or could be derived from URL params)
-  const [filters, setFilters] = useState({
+  const [tempFilters, setTempFilters] = useState({
     category: searchParams.get("category") || "",
+    query: searchParams.get("q") || "", // Add this line for search query
     minPrice: searchParams.get("minPrice") || "",
     maxPrice: searchParams.get("maxPrice") || "",
     brand: searchParams.get("brand") || "",
-  });
+    inStockOnly: searchParams.get("inStockOnly") === "true" || false,
+    includeDiscountedOnly:
+      searchParams.get("includeDiscountedOnly") === "true" || false,
+    specFilter: searchParams.get("specFilter") || "",
+  }); // State to track the current applied filters
+  const [appliedFilters, setAppliedFilters] = useState(tempFilters);
 
   // Fetch categories using useQuery
   const {
@@ -87,39 +108,47 @@ const Products = () => {
       // This can happen if categories change or the filter name is invalid
 
       // Apply price range filter - Convert DZD to cents
-      if (filters.minPrice) {
-        const minPriceCents = parseFloat(filters.minPrice) * 100; // Assuming input is in DZD
+      if (appliedFilters.minPrice) {
+        const minPriceCents = parseFloat(appliedFilters.minPrice) * 100; // Assuming input is in DZD
         // Validate conversion
         if (!isNaN(minPriceCents) && minPriceCents > 0) {
           params.min_price = Math.round(minPriceCents); // Round to nearest cent
         }
       }
-      if (filters.maxPrice) {
-        const maxPriceCents = parseFloat(filters.maxPrice) * 100; // Assuming input is in DZD
+      if (appliedFilters.maxPrice) {
+        const maxPriceCents = parseFloat(appliedFilters.maxPrice) * 100; // Assuming input is in DZD
         // Validate conversion
         if (!isNaN(maxPriceCents) && maxPriceCents > 0) {
           params.max_price = Math.round(maxPriceCents); // Round to nearest cent
         }
       }
-
+      // Apply search query filter
+      if (appliedFilters.query) {
+        params.q = appliedFilters.query;
+      }
       // Apply brand filter
-      if (filters.brand) {
-        params.brand = filters.brand;
+      if (appliedFilters.brand) {
+        params.brand = appliedFilters.brand;
       }
 
-      // Add other filters here if needed (e.g., in_stock_only, include_discounted_only)
-      // Example:
-      // if (filters.inStockOnly) {
-      //   params.in_stock_only = true;
-      // }
-      // if (filters.includeDiscountedOnly) {
-      //   params.include_discounted_only = true;
-      // }
+      // Apply in stock only filter
+      if (appliedFilters.inStockOnly) {
+        params.in_stock_only = true;
+      }
 
-      console.log("DEBUG: Constructed API search params:", params); // Debug log
+      // Apply include discounted only filter
+      if (appliedFilters.includeDiscountedOnly) {
+        params.include_discounted_only = true;
+      }
+
+      // Apply spec filter
+      if (appliedFilters.specFilter) {
+        params.spec_filter = appliedFilters.specFilter;
+      }
+
       return params;
     };
-  }, [filters, categoryNameToIdMap]); // Dependency on filters and the name-to-id map
+  }, [appliedFilters, categoryNameToIdMap, CATEGORY_URL_TO_NAME]); // Dependency on appliedFilters and the name-to-id map
 
   // Fetch products using searchProducts and current filters via useQuery
   // The queryKey now includes the filters state, ensuring a new request when filters change
@@ -136,14 +165,12 @@ const Products = () => {
     error: productsApiError,
     refetch: refetchProducts, // Function to manually refetch if needed
   } = useQuery({
-    queryKey: ["searchProducts", filters, categories], // Include filters and categories (for mapping) in key
+    queryKey: ["searchProducts", appliedFilters, categories], // Include applied filters and categories (for mapping) in key
     queryFn: async () => {
       // Get the current parameters based on the latest filters and category map
       const currentParams = buildSearchParams();
-      console.log("DEBUG: Calling searchProducts with params:", currentParams); // Debug log
       // Call searchProducts with the constructed parameters
       const result = await searchProducts(currentParams);
-      console.log("DEBUG: searchProducts API call returned:", result); // Debug log
       return result; // Return the API response object
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes based on filters
@@ -164,33 +191,56 @@ const Products = () => {
   // Memoize filtered products - now it's just the products returned by the API based on filters
   // We rely on the backend filtering via searchProducts
   const filteredProducts = useMemo(() => {
-    console.log(
-      "DEBUG: Using products from API (filtered by backend):",
-      products.length,
-    );
     return products;
   }, [products]); // Dependency on products from the query result
 
+  // Handle filter changes (update temp filters, not applied filters)
   const handleFilterChange = (key, value) => {
-    if (key === "reset") {
-      setFilters({ category: "", minPrice: "", maxPrice: "", brand: "" });
-      setSearchParams({});
-    } else {
-      setFilters((prev) => ({ ...prev, [key]: value }));
-      // Update URL search params based on filter change
-      const newParams = { ...Object.fromEntries(searchParams.entries()) }; // Copy existing params
-      if (value) {
-        newParams[key] = value;
-      } else {
-        delete newParams[key]; // Remove param if value is empty
-      }
-      setSearchParams(newParams);
-    }
+    setTempFilters((prev) => ({ ...prev, [key]: value }));
   };
+
+  // Apply filters function
+  const applyFilters = useCallback(() => {
+    setAppliedFilters(tempFilters);
+
+    // Update URL search params based on applied filters
+    const newParams = {};
+    if (tempFilters.category) newParams.category = tempFilters.category;
+    if (tempFilters.query) newParams.q = tempFilters.query;
+    if (tempFilters.minPrice) newParams.minPrice = tempFilters.minPrice;
+    if (tempFilters.maxPrice) newParams.maxPrice = tempFilters.maxPrice;
+    if (tempFilters.brand) newParams.brand = tempFilters.brand;
+    if (tempFilters.inStockOnly) {
+      newParams.inStockOnly = tempFilters.inStockOnly.toString();
+    }
+    if (tempFilters.includeDiscountedOnly) {
+      newParams.includeDiscountedOnly = tempFilters.includeDiscountedOnly
+        .toString();
+    }
+    if (tempFilters.specFilter) newParams.specFilter = tempFilters.specFilter;
+
+    setSearchParams(newParams);
+  }, [tempFilters, setSearchParams]);
+
+  // Reset filters function
+  const resetFilters = useCallback(() => {
+    const resetValues = {
+      category: "",
+      query: "",
+      minPrice: "",
+      maxPrice: "",
+      brand: "",
+      inStockOnly: false,
+      includeDiscountedOnly: false,
+      specFilter: "",
+    };
+    setTempFilters(resetValues);
+    setAppliedFilters(resetValues);
+    setSearchParams({});
+  }, [setSearchParams]);
 
   // Handle loading states (both products and categories)
   if (overallLoading) {
-    console.log("DEBUG: Overall loading is true");
     return (
       <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
         <h1 className="text-3xl font-bold mb-8 ">Products</h1>
@@ -231,7 +281,6 @@ const Products = () => {
 
   // Handle error states (either products or categories)
   if (overallError) {
-    console.log("DEBUG: Overall error occurred:", overallErrorMessage);
     return (
       <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
         <h1 className="text-3xl font-bold mb-8 ">Products</h1>
@@ -252,13 +301,6 @@ const Products = () => {
     );
   }
 
-  // Log the final filtered products count before rendering
-  console.log(
-    "DEBUG: Rendering",
-    filteredProducts.length,
-    "filtered products from API",
-  );
-
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8 ">Products</h1>
@@ -267,8 +309,10 @@ const Products = () => {
         {/* Filter Panel - Pass categories and loading state if needed */}
         <div className="lg:col-span-1">
           <FilterPanel
-            filters={filters}
+            filters={tempFilters}
             onFilterChange={handleFilterChange}
+            onApplyFilters={applyFilters}
+            onResetFilters={resetFilters}
             categories={categories} // Pass the categories fetched by useQuery
             loading={categoriesLoading} // Pass loading state if FilterPanel needs it
           />
@@ -284,7 +328,7 @@ const Products = () => {
                 </p>
                 <button
                   className="btn btn-secondary bg-gray-700 hover:bg-gray-600 "
-                  onClick={() => handleFilterChange("reset")}
+                  onClick={resetFilters}
                 >
                   Clear Filters
                 </button>

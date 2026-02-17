@@ -11,6 +11,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth
+import { useQuery } from "@tanstack/react-query"; // Import useQuery
+import { fetchCategories } from "../services/api"; // Import fetchCategories
 import ThemeSwitcher from "./ThemeSwitcher"; // Import the new component
 
 // Import the logo image
@@ -25,16 +27,30 @@ const Navbar = () => {
   const { cart, subtotal } = useCart(); // Get cart items and subtotal
   const { user, isLoading } = useAuth(); // Get user and loading state from auth context
 
+  // Fetch categories using useQuery
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+  } = useQuery({
+    queryKey: ["navbar-categories"],
+    queryFn: fetchCategories,
+    staleTime: 15 * 60 * 1000, // Cache for 15 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+  });
+
   const handleSearch = (e) => {
     e.preventDefault();
-    let query = [];
+    let queryParams = new URLSearchParams();
+
     if (searchTerm.trim()) {
-      query.push(`search=${encodeURIComponent(searchTerm)}`);
+      queryParams.append("q", searchTerm.trim());
     }
-    if (selectedCategory !== "All Categories") {
-      query.push(`category=${encodeURIComponent(selectedCategory)}`);
+    if (selectedCategory) {
+      queryParams.append("category", selectedCategory);
     }
-    navigate(`/products?${query.join("&")}`);
+
+    navigate(`/products?${queryParams.toString()}`);
   };
 
   useEffect(() => {
@@ -43,21 +59,8 @@ const Navbar = () => {
 
   const isBuildPCPage = location.pathname === "/build-pc";
 
-  // State for the category dropdown
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-
-  const categories = [
-    "All Categories", // This serves as a placeholder too
-    "CPUs",
-    "GPUs",
-    "RAM",
-    "Storage",
-    "Motherboards",
-    "Cases",
-    "PSUs",
-    "Peripherals",
-    // These are the mockup category types
-  ];
+  // State for the category dropdown - initialize to empty string
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleCategoryChange = (e) => {
     const newCategory = e.target.value;
@@ -65,6 +68,7 @@ const Navbar = () => {
     // Optionally, trigger a filter action here if needed globally
     // .setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
   };
+
   let phoneNumber = "+079999999";
   let address = "TAHER, Jijel, Algeria";
   let currency = "DZD";
@@ -174,14 +178,19 @@ const Navbar = () => {
                   <select
                     value={selectedCategory}
                     onChange={handleCategoryChange}
-                    className="bg-base-200 text-base-content px-4 py-3 border-none focus:outline-none min-w-[120px] appearance-none pl-4 pr-8 cursor-pointer" // Changed bg-gray-800 to bg-base-200, text-gray-300 to text-base-content
+                    className="bg-base-200 text-base-content px-4 py-3 border-none focus:outline-none min-w-[120px] appearance-none pl-4 pr-8 cursor-pointer"
+                    disabled={categoriesLoading}
                   >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
+                    <option value="">All Categories</option>
+                    {categories.map((category) => (
+                      <option
+                        key={category.id}
+                        value={category.name}
+                      >
+                        {category.name}
                       </option>
                     ))}
-                  </select>
+                  </select>{" "}
                   {/* Custom Arrow SVG */}
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-base-content">
                     {/* Changed text-gray-300 to text-base-content */}
@@ -209,9 +218,10 @@ const Navbar = () => {
                 />
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-primary-focus text-primary-content px-5 py-3 font-medium transition" // Changed bg-red-500 to bg-primary, hover:bg-red-600 to hover:bg-primary-focus, text-white to text-primary-content
+                  className="bg-primary hover:bg-primary-focus text-primary-content px-5 py-3 font-medium transition"
+                  disabled={categoriesLoading}
                 >
-                  Search
+                  {categoriesLoading ? "Searching..." : "Search"}
                 </button>
               </div>
             </form>

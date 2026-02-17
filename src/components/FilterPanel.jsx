@@ -2,13 +2,15 @@
 import React from "react";
 
 const FilterPanel = (
-  { filters, onFilterChange, categories = [], loading = false },
+  {
+    filters,
+    onFilterChange,
+    onApplyFilters,
+    onResetFilters,
+    categories = [],
+    loading = false,
+  },
 ) => {
-  // Removed useEffect and fetchCategories logic as data is now passed down
-
-  // Removed separate loading state as it's handled in the parent component (Products.jsx)
-  // The skeleton UI in Products.jsx covers the initial load of both products and categories
-
   return (
     <div className="bg-base-100 p-4 rounded-lg shadow-md border border-neutral-content">
       <h3 className="font-bold text-lg mb-4 ">Filters</h3>
@@ -92,12 +94,59 @@ const FilterPanel = (
         </select>
       </div>
 
-      <button
-        className="btn btn-secondary btn-outline w-full"
-        onClick={() => onFilterChange("reset")}
-      >
-        Reset Filters
-      </button>
+      {/* Additional Filters */}
+      <div className="mb-4">
+        <label className="label cursor-pointer justify-start gap-2">
+          <input
+            type="checkbox"
+            className="toggle toggle-primary"
+            checked={filters.inStockOnly}
+            onChange={(e) => onFilterChange("inStockOnly", e.target.checked)}
+          />
+          <span className="label-text">In Stock Only</span>
+        </label>
+      </div>
+
+      <div className="mb-4">
+        <label className="label cursor-pointer justify-start gap-2">
+          <input
+            type="checkbox"
+            className="toggle toggle-primary"
+            checked={filters.includeDiscountedOnly}
+            onChange={(e) =>
+              onFilterChange("includeDiscountedOnly", e.target.checked)}
+          />
+          <span className="label-text">Include Discounted Only</span>
+        </label>
+      </div>
+
+      <div className="mb-4">
+        <label className="label">
+          <span className="label-text ">Spec Filter</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Enter specifications..."
+          className="input input-bordered w-full bg-base-100  border-gray-600"
+          value={filters.specFilter}
+          onChange={(e) => onFilterChange("specFilter", e.target.value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <button
+          className="btn btn-primary"
+          onClick={onApplyFilters}
+        >
+          Apply Filters
+        </button>
+        <button
+          className="btn btn-secondary btn-outline"
+          onClick={onResetFilters}
+        >
+          Reset
+        </button>
+      </div>
     </div>
   );
 };

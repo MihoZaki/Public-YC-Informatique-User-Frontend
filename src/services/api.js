@@ -265,8 +265,7 @@ export const searchProducts = async (searchParams = {}) => {
     }
 
     const response = await apiClient.get("/v1/products/search", { params });
-    // The API returns {  [...], page, limit, total, total_pages, ... }
-    // Return the *entire* response object. The component will destructure it.
+    console.log("response is", response);
     return response.data;
   } catch (error) {
     console.error("Error searching products:", error);

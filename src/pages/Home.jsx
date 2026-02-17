@@ -1,8 +1,9 @@
 // src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { fetchCategories, fetchProducts } from "../services/api"; // Import the new API functions
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategories, searchProducts } from "../services/api"; // Added fetchCategories
 import { toast } from "sonner";
 // Import Heroicons
 import {
@@ -35,30 +36,103 @@ import samsungLogo from "../assets/samsung-logo.png";
 import asusLogo from "../assets/asus-logo.png";
 import gskillLogo from "../assets/gskill-logo.png";
 
-const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// Direct mapping based on the actual backend response
+const CATEGORY_NAME_MAPPING = {
+  cpus: "CPU",
+  gpus: "GPU",
+  ram: "RAM",
+  storage: "Storage",
+  motherboards: "Motherboard",
+  cases: "Case",
+  psus: "Power Supply",
+  peripherals: "Accessories", // Correctly maps to Accessories
+  coolers: "Cooler", // Added cooler mapping
+  laptops: "Laptop", // Added laptop mapping
+};
 
-  useEffect(() => {
-    const loadProducts = async () => {
+const Home = () => {
+  // Fetch both featured products and categories
+  const {
+    data: featuredProducts = [],
+    isLoading: loadingProducts,
+    isError: isProductError,
+    error: productError,
+    refetch: refetchProducts,
+  } = useQuery({
+    queryKey: ["featured-products"],
+    queryFn: async () => {
       try {
-        setError(null);
-        setLoading(true);
-        const products = await fetchProducts();
-        setFeaturedProducts(products.slice(0, 8)); // Get first 8 products
+        // Use searchProducts with limit of 8 instead of fetchProducts
+        const response = await searchProducts({
+          page: 1,
+          limit: 8,
+        });
+        return response?.data || []; // Adjust based on your API response structure
       } catch (err) {
-        console.error("Error fetching products:", err);
-        setError(
-          err.message || "Failed to load products. Please try again later.",
+        console.error("Error fetching featured products:", err);
+        toast.error(
+          "Failed to load featured products. Please try again later.",
         );
-        toast.error("Failed to load products. Please try again later.");
-      } finally {
-        setLoading(false);
+        throw err;
       }
-    };
-    loadProducts();
-  }, []);
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Fetch categories to get actual IDs
+  const {
+    allCategories = [],
+    isLoading: loadingCategories,
+    isError: isCategoryError,
+    error: categoryError,
+    refetch: refetchCategories,
+  } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      try {
+        const response = await fetchCategories();
+        return response || [];
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        toast.error("Failed to load categories. Please try again later.");
+        throw err;
+      }
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 15 * 60 * 1000, // 15 minutes
+  });
+
+  // Function to find the backend category ID based on our display name
+  const findCategoryId = (displayName) => {
+    if (!allCategories.length) return displayName; // Fallback if categories haven't loaded yet
+
+    const targetName = CATEGORY_NAME_MAPPING[displayName];
+    if (!targetName) return displayName; // Return the display name if no mapping exists
+
+    // Find the category with the exact name match
+    const category = allCategories.find((cat) =>
+      cat.name &&
+      typeof cat.name === "string" &&
+      cat.name.toLowerCase() === targetName.toLowerCase()
+    );
+
+    if (category) {
+      return category.id; // Return the actual backend ID
+    }
+
+    // If no match found, return the display name as fallback
+    return displayName;
+  };
+
+  // Loading states
+  const loading = loadingProducts || loadingCategories;
+  const isError = isProductError || isCategoryError;
+  const error = productError || categoryError;
+  const refetch = () => {
+    refetchProducts();
+    refetchCategories();
+  };
 
   // Define the brands for the carousel
   const brands = [
@@ -98,7 +172,6 @@ const Home = () => {
       title: "Fresh Products",
       icon: <CubeIcon className="h-8 w-8 text-primary" />,
     },
-    ,
     {
       id: "warranty",
       title: "Guaranteed Warranty",
@@ -106,49 +179,72 @@ const Home = () => {
     },
   ];
 
-  // Hardcoded categories for the deterministic layout (could be fetched if layout is dynamic)
-  // Using placeholder images and names for now as the layout is hardcoded
+  // Updated hardcoded categories with dynamic category ID lookup
   const hardcodedCategories = [
     // [0] Big card: CPUs (spans 2 cols × 2 rows)
-    { id: "cpus", name: "CPUs", image: cpuImage, isBig: true, filter: "CPUs" }, // Added filter field
+    {
+      id: "cpus",
+      name: "CPUs",
+      image: cpuImage,
+      isBig: true,
+      categoryId: findCategoryId("cpus"),
+    },
     // [1] Top-right
-    { id: "gpus", name: "GPUs", image: gpuImage, isBig: false, filter: "GPUs" }, // Added filter field
+    {
+      id: "gpus",
+      name: "GPUs",
+      image: gpuImage,
+      isBig: false,
+      categoryId: findCategoryId("gpus"),
+    },
     // [2] Below GPUs
-    { id: "ram", name: "RAM", image: ramImage, isBig: false, filter: "RAM" }, // Added filter field
+    {
+      id: "ram",
+      name: "RAM",
+      image: ramImage,
+      isBig: false,
+      categoryId: findCategoryId("ram"),
+    },
     // [3] Below RAM
     {
       id: "storage",
       name: "Storage",
       image: storageImage,
       isBig: false,
-      filter: "Storage",
-    }, // Added filter field
+      categoryId: findCategoryId("storage"),
+    },
     // [4] Right of big card (row 1, col 3)
     {
       id: "motherboards",
       name: "Motherboards",
       image: motherboardImage,
       isBig: false,
-      filter: "Motherboards",
-    }, // Added filter field
+      categoryId: findCategoryId("motherboards"),
+    },
     // [5] Below motherboards
     {
       id: "cases",
       name: "Cases",
       image: caseImage,
       isBig: false,
-      filter: "Cases",
-    }, // Added filter field
+      categoryId: findCategoryId("cases"),
+    },
     // [6] Below cases
-    { id: "psus", name: "PSUs", image: psuImage, isBig: false, filter: "PSUs" }, // Added filter field
+    {
+      id: "psus",
+      name: "PSUs",
+      image: psuImage,
+      isBig: false,
+      categoryId: findCategoryId("psus"),
+    },
     // [7] Bottom-right (last slot)
     {
       id: "peripherals",
       name: "Peripherals",
       image: peripheralImage,
       isBig: false,
-      filter: "Peripherals",
-    }, // Added filter field
+      categoryId: findCategoryId("Accessories"),
+    },
   ];
 
   return (
@@ -219,8 +315,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[0].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[0].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[0].categoryId)
+              }`}
               className="lg:col-span-2 lg:row-span-2 flex flex-col"
             >
               <div className="relative flex-grow overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -244,8 +340,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[1].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[1].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[1].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-full w-full overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -268,8 +364,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[2].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[2].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[2].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -292,8 +388,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[3].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[3].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[3].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -316,8 +412,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[4].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[4].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[4].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -340,8 +436,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[5].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[5].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[5].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -364,8 +460,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[6].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[6].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[6].categoryId)
+              }`}
               className="lg:col-span-1 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -388,8 +484,8 @@ const Home = () => {
             <Link
               key={hardcodedCategories[7].id}
               to={`/products?category=${
-                encodeURIComponent(hardcodedCategories[7].filter.toLowerCase())
-              }`} // Encode the filter name
+                encodeURIComponent(hardcodedCategories[7].categoryId)
+              }`}
               className="lg:col-span-2 lg:row-span-1"
             >
               <div className="relative h-64 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
@@ -462,15 +558,16 @@ const Home = () => {
                 ))}
               </div>
             )
-            : error
+            : isError
             ? ( // Show error state if error occurred
               <div className="text-center py-12">
                 <p className="text-xl mb-4 text-error">
-                  Error loading products: {error}
+                  Error loading :{" "}
+                  {error?.message || "An unknown error occurred"}
                 </p>
                 <button
                   className="btn btn-primary"
-                  onClick={() => window.location.reload()} // Simple retry mechanism
+                  onClick={() => refetch()} // Use combined refetch
                 >
                   Retry
                 </button>
