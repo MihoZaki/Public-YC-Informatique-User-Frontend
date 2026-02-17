@@ -12,6 +12,9 @@ import { toast } from "sonner";
 // Import the auth context to listen for changes
 import { useAuth } from "../contexts/AuthContext";
 
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
+  "http://localhost:8080";
+
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
@@ -41,6 +44,19 @@ export const CartProvider = ({ children }) => {
   }, 0);
   const total = subtotal;
 
+  // Function to construct full image URL
+  const constructImageUrl = (imageUrl) => {
+    if (!imageUrl) return "";
+
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend the backend base URL
+    return `${BACKEND_BASE_URL}${imageUrl}`;
+  };
+
   // Function to sync the entire cart with the backend
   const syncCartWithBackend = async () => {
     try {
@@ -52,16 +68,20 @@ export const CartProvider = ({ children }) => {
           const product = cartItem.product;
           const unitPrice = product.final_price_cents / 100; // Use product's final price
 
+          // Construct full image URL
+          const fullImageUrl =
+            product.image_urls && product.image_urls.length > 0
+              ? constructImageUrl(product.image_urls[0])
+              : "";
+
           return {
             id: product.id,
             name: product.name,
             price: unitPrice, // This is the final/discounted price
             original_price_cents: product.original_price_cents, // Preserve original price
             final_price_cents: product.final_price_cents, // Preserve final price
-            image: product.image_urls && product.image_urls.length > 0
-              ? product.image_urls[0]
-              : "", // Use first image URL
-            quantity: cartItem.quantity, // This is the crucial part - use the actual quantity from backend
+            image: fullImageUrl, // Use the constructed full image URL
+            // Replace with your backend URL            quantity: cartItem.quantity, // This is the crucial part - use the actual quantity from backend
             cart_item_id: cartItem.id, // Store the backend cart item ID
             brand: product.brand,
             stock_quantity: product.stock_quantity,

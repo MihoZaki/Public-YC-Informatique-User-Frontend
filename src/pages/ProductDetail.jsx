@@ -4,13 +4,16 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth to check if user is logged in
 import {
+  addItemToCart,
   fetchProductById,
   searchProducts,
   submitReview,
-} from "../services/api"; // Import the API functions (removed addItemToCart)
+} from "../services/api"; // Import the API functions
 import { toast } from "sonner"; // Import toast
 import { StarIcon } from "@heroicons/react/24/solid"; // Import StarIcon for the rating display/form
-import ProductCard from "../components/ProductCard"; // Import ProductCard for related products
+
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
+  "http://localhost:8080";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -26,7 +29,20 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [relatedProductsLoading, setRelatedProductsLoading] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false); // Loading state for add to cart
-  const { addToCart: addToLocalCart } = useCart(); // This calls the CartContext function
+  const { addToCart: addToLocalCart } = useCart(); // Renamed to avoid conflict
+
+  // Function to construct full image URL
+  const constructImageUrl = (imageUrl) => {
+    if (!imageUrl) return "";
+
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend the backend base URL
+    return `${BACKEND_BASE_URL}${imageUrl}`;
+  };
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -34,6 +50,14 @@ const ProductDetail = () => {
       setError(null); // Clear previous errors
       try {
         const data = await fetchProductById(id); // Fetch from real API
+
+        // Process the product to ensure image URLs are properly formatted
+        if (data.image_urls && data.image_urls.length > 0) {
+          data.image_urls = data.image_urls.map((url) =>
+            constructImageUrl(url)
+          );
+        }
+
         setProduct(data);
         // Reset selected image index when a new product loads
         setSelectedImageIndex(0);
@@ -67,8 +91,19 @@ const ProductDetail = () => {
         limit: 6,
         page: 1,
       });
+
+      // Process related products to ensure image URLs are properly formatted
+      const processedProducts = response.data.map((prod) => {
+        if (prod.image_urls && prod.image_urls.length > 0) {
+          prod.image_urls = prod.image_urls.map((url) =>
+            constructImageUrl(url)
+          );
+        }
+        return prod;
+      });
+
       // Filter out the current product from results
-      const filteredProducts = response.data.filter((p) => p.id !== id);
+      const filteredProducts = processedProducts.filter((p) => p.id !== id);
       setRelatedProducts(filteredProducts);
     } catch (err) {
       console.error("Error fetching related products:", err);
@@ -88,14 +123,22 @@ const ProductDetail = () => {
     if (product) {
       setIsAddingToCart(true);
       try {
-        // Use the CartContext function which handles API call and local state
-        // Create a product object with the selected quantity
-        const productToAdd = {
-          ...product,
-          quantity, // Use the selected quantity from state
-        };
+        // Call the API to add item to cart
+        const response = await addItemToCart(product.id, quantity);
 
-        await addToLocalCart(productToAdd);
+        // Determine price to add to cart based on discount
+        const priceForCart = product.has_active_discount &&
+            product.discounted_price_cents !== undefined
+          ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
+          : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
+
+        // Sync with local cart context after successful API call
+        addToLocalCart({
+          ...product,
+          quantity,
+          image: product.image_urls[0], // Use the first image for the cart
+          price: priceForCart, // Use the calculated price
+        });
 
         toast.success(`"${product.name}" added to cart!`); // Show success toast using product.name
       } catch (error) {

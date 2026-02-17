@@ -8,14 +8,30 @@ import {
   StarIcon,
 } from "@heroicons/react/24/solid";
 import { useCart } from "../contexts/CartContext"; // Still need this to sync local cart
-// Remove this import: import { addItemToCart } from "../services/api"; // Import the API function
+import { addItemToCart } from "../services/api"; // Import the API function
+
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
+  "http://localhost:8080";
 
 const ProductCard = ({ product }) => {
   const navigation = useNavigate();
   const savedTheme = localStorage.getItem("theme");
-  const { addToCart: addToLocalCart } = useCart(); // This now calls the CartContext function
+  const { addToCart: addToLocalCart } = useCart(); // Renamed to avoid conflict
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+
+  // Function to construct full image URL
+  const constructImageUrl = (imageUrl) => {
+    if (!imageUrl) return "";
+
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend the backend base URL
+    return `${BACKEND_BASE_URL}${imageUrl}`;
+  };
 
   const handleQuickAdd = async () => {
     if (isAdding) return;
@@ -23,8 +39,27 @@ const ProductCard = ({ product }) => {
     setIsAdded(false);
 
     try {
-      // Use the CartContext function which handles API call and local state
-      await addToLocalCart(product);
+      // Call the API to add item to cart
+      const response = await addItemToCart(product.id, 1);
+
+      // Ensure the image added to the local cart is the first one from the product's image_urls
+      const imageForCart = product.image_urls && product.image_urls.length > 0
+        ? constructImageUrl(product.image_urls[0]) // Use the image URL constructor
+        : ""; // Fallback to empty string if no image_urls
+
+      // Determine price to add to cart based on discount (using new field names)
+      const priceForCart = product.has_active_discount &&
+          product.discounted_price_cents !== undefined
+        ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
+        : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
+
+      // Sync with local cart context after successful API call
+      addToLocalCart({
+        ...product,
+        quantity: 1,
+        image: imageForCart, // Use the constructed image URL
+        price: priceForCart, // Use the calculated price
+      }); // Pass the correct image and price
 
       setIsAdded(true);
       toast.success(`"${product.name}" added to cart!`); // Use product.name
@@ -43,7 +78,10 @@ const ProductCard = ({ product }) => {
     navigation(`/product/${product.id}`);
   };
 
-  const displayImage = product.image_urls ? product.image_urls[0] : ""; // Fallback to empty string if no image_urls
+  // Function to get display image URL
+  const displayImage = product.image_urls && product.image_urls.length > 0
+    ? constructImageUrl(product.image_urls[0])
+    : ""; // Fallback to empty string if no image_urls
 
   // --- Determine Pricing Information (using new field names) ---
   const hasDiscount = product.has_active_discount &&

@@ -4,11 +4,27 @@ import { useAuth } from "../contexts/AuthContext"; // Import useAuth
 import { fetchUserOrders } from "../services/api"; // Import the API function
 import { toast } from "sonner"; // Import toast for error handling
 
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
+  "http://localhost:8080";
+
 const Account = () => {
   const { user, logout } = useAuth(); // Get user and logout function
   const location = useLocation(); // Get current location
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Function to construct full image URL
+  const constructImageUrl = (imageUrl) => {
+    if (!imageUrl) return "";
+
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl;
+    }
+
+    // Otherwise, prepend the backend base URL
+    return `${BACKEND_BASE_URL}${imageUrl}`;
+  };
 
   // Fetch recent orders (limit 3)
   useEffect(() => {
@@ -19,7 +35,14 @@ const Account = () => {
       try {
         // Fetch first page with limit of 3 for recent orders
         const response = await fetchUserOrders(1, 3);
-        setRecentOrders(response.data || []);
+
+        // Process the orders to ensure image URLs are properly formatted if needed
+        const processedOrders = response.data?.map((order) => ({
+          ...order,
+          // If there are product images in the order, format them here
+        })) || [];
+
+        setRecentOrders(processedOrders);
       } catch (error) {
         console.error("Error fetching recent orders:", error);
 
