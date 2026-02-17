@@ -9,6 +9,9 @@ import {
 } from "../services/api";
 import { toast } from "sonner";
 
+// Import the auth context to listen for changes
+import { useAuth } from "../contexts/AuthContext";
+
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
@@ -22,6 +25,9 @@ export const CartProvider = ({ children }) => {
   } = useStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
+
+  // Get auth context to detect login/logout events
+  const { user, isAuthenticated } = useAuth();
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -91,6 +97,14 @@ export const CartProvider = ({ children }) => {
 
     loadCartFromBackend();
   }, []); // Remove dependencies to prevent re-running
+
+  // Effect to sync cart when user authentication status changes
+  useEffect(() => {
+    if (isInitialized) {
+      // Refresh cart when authentication status changes
+      syncCartWithBackend();
+    }
+  }, [isAuthenticated, isInitialized]);
 
   // Enhanced cart actions that sync with backend
   const syncAddToCart = async (product) => {

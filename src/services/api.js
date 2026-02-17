@@ -450,20 +450,6 @@ export const fetchUserOrders = async (page = 1, limit = 20) => {
 // --- User Profile Endpoints (Require Authorization Token) ---
 // Assuming these endpoints exist and follow the pattern seen in admin
 // Check actual API docs for exact paths and payload structure if they differ from admin
-/**
- * Fetches the current user's profile information.
- * @returns {Promise<Object>} The response data containing the user details.
- */
-export const fetchUserProfile = async () => {
-  // Token is automatically added by interceptor if present
-  try {
-    const response = await apiClient.get("/v1/user/profile"); // Check actual path
-    return response.data.data; // Assuming response is { success: true,  { ...user_data... } }
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-    throw error;
-  }
-};
 
 /**
  * Updates the current user's profile information (name, email).

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import heroBackgroundImage from "../assets/heroBackgroundImage.png";
 
 const AuthPage = () => {
@@ -11,8 +12,9 @@ const AuthPage = () => {
     name: "",
   }); // Include name for signup
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { login, user } = useAuth(); // Get login function and user state
+  const { login, register, user } = useAuth(); // Get register function as well
   const navigate = useNavigate();
 
   // Redirect if already logged in
@@ -25,34 +27,71 @@ const AuthPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(""); // Clear previous errors
+    setIsLoading(true);
 
-    // Simple validation (add more as needed)
-    if (!formData.email || !formData.password) {
-      setError("Email and password are required.");
-      return;
+    try {
+      // Simple validation (add more as needed)
+      if (!formData.email || !formData.password) {
+        setError("Email and password are required.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!isLogin && !formData.name.trim()) {
+        setError("Name is required for signup.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (isLogin) {
+        // Login attempt
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+        toast.success("Logged in successfully!");
+      } else {
+        // Registration attempt
+        await register({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.name.trim(),
+        });
+        toast.success("Account created successfully!");
+      }
+
+      // Navigate to appropriate page after successful auth
+      navigate("/account");
+    } catch (error) {
+      console.error(isLogin ? "Login" : "Registration", "error:", error);
+
+      // Try to get error message from response
+      let errorMessage = isLogin
+        ? "Login failed. Please try again."
+        : "Registration failed. Please try again.";
+
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.status === 401) {
+          errorMessage = "Invalid email or password.";
+        } else if (error.response.status === 409) {
+          errorMessage = "Email already exists. Please use a different email.";
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = "Network error. Please check your connection.";
+      }
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
-
-    if (!isLogin && !formData.name) {
-      setError("Name is required for signup.");
-      return;
-    }
-
-    // Simulate successful login/signup
-    // In a real app, you would call an API here
-    console.log(
-      `Attempting to ${isLogin ? "log in" : "sign up"} with:`,
-      formData,
-    );
-
-    // For demo purposes, just call the login function which sets the user state
-    // The login function in our mock context doesn't actually validate credentials
-    login(formData);
-
-    // Optionally, redirect after successful login/signup
-    // navigate('/account'); // Already handled by the redirect check above if user becomes truthy
   };
 
   return (
@@ -86,6 +125,7 @@ const AuthPage = () => {
                   className="input input-bordered"
                   value={formData.name}
                   onChange={handleChange}
+                  disabled={isLoading}
                 />
               </div>
             )}
@@ -100,6 +140,7 @@ const AuthPage = () => {
                 className="input input-bordered"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isLoading}
               />
             </div>
             <div className="form-control mt-2">
@@ -113,11 +154,26 @@ const AuthPage = () => {
                 className="input input-bordered"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
               />
             </div>
             <div className="form-control mt-6">
-              <button type="submit" className="btn btn-primary">
-                {isLogin ? "Log In" : "Sign Up"}
+              <button
+                type="submit"
+                className={`btn btn-primary ${isLoading ? "loading" : ""}`}
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs mr-2">
+                      </span>
+                      {isLogin ? "Logging in..." : "Signing up..."}
+                    </>
+                  )
+                  : (
+                    isLogin ? "Log In" : "Sign Up"
+                  )}
               </button>
             </div>
           </form>
@@ -131,6 +187,7 @@ const AuthPage = () => {
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="link link-primary"
+                disabled={isLoading}
               >
                 {isLogin ? "Sign Up" : "Log In"}
               </button>

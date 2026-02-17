@@ -139,7 +139,7 @@ const Navbar = () => {
             className="hover:text-primary transition"
           >
             {/* Changed hover:text-white to hover:text-primary */}
-            {user ? `Hello, ${user.name}` : "My Account"}{" "}
+            {user ? `Hello, ${user.full_name}` : "My Account"}{" "}
             {/* Show username if logged in */}
           </Link>
         </div>
