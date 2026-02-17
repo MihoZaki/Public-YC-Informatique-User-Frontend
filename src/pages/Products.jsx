@@ -4,38 +4,20 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ProductCard from "../components/ProductCard";
 import FilterPanel from "../components/FilterPanel";
-import { fetchCategories, fetchProducts } from "../services/api"; // Import the new API functions
+import {
+  fetchCategories,
+  searchProducts, // Keep using searchProducts
+} from "../services/api";
 import { toast } from "sonner";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   // State for filters (managed locally or could be derived from URL params)
-  // For now, let's initialize from URL params if they exist, otherwise empty
   const [filters, setFilters] = useState({
     category: searchParams.get("category") || "",
     minPrice: searchParams.get("minPrice") || "",
     maxPrice: searchParams.get("maxPrice") || "",
     brand: searchParams.get("brand") || "",
-  });
-
-  // Fetch products using useQuery - Initial fetch without filters
-  // We'll fetch page 1, limit 50 for now as an example
-  const {
-    data: productsData = {
-      data: [],
-      page: 1,
-      limit: 20,
-      total: 0,
-      total_pages: 1,
-    }, // Provide a default structure - CORRECTED SYNTAX
-    isLoading: productsLoading,
-    isError: productsError,
-    error: productsApiError,
-    refetch: refetchProducts, // Function to manually refetch if needed
-  } = useQuery({
-    queryKey: ["products", { page: 1, limit: 50 }], // Include basic pagination params in key
-    queryFn: () => fetchProducts(1, 50), // Call fetchProducts with page and limit
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
   // Fetch categories using useQuery
@@ -50,8 +32,126 @@ const Products = () => {
     staleTime: 15 * 60 * 1000, // Cache for 15 minutes
   });
 
+  // Map category name to ID using the fetched categories list
+  // We need this mapping to convert the filter name (e.g., "GPU") to the required category_id for the API
+  const categoryNameToIdMap = useMemo(() => {
+    if (!categories || !Array.isArray(categories)) return {};
+    const map = {};
+    categories.forEach((cat) => {
+      map[cat.name] = cat.id;
+    });
+    return map;
+  }, [categories]); // Recalculate map when categories change
+
+  // Build search parameters object based on current filters
+  // This function is memoized to avoid unnecessary recalculations on every render
+  const buildSearchParams = useMemo(() => {
+    // This inner function will be called inside the queryFn
+    return () => {
+      const params = {
+        page: 1, // Default page
+        limit: 50, // Default limit
+      };
+
+      // Apply category filter - Convert URL-friendly name to actual category name then to ID
+      let actualCategoryName = appliedFilters.category;
+
+      // Check if the filter category is a URL-friendly name that needs conversion
+      if (CATEGORY_URL_TO_NAME[appliedFilters.category]) {
+        actualCategoryName = CATEGORY_URL_TO_NAME[appliedFilters.category];
+      } else if (appliedFilters.category) {
+        // If no direct mapping found, try to convert the URL parameter to title case
+        // For example: "cpu-cooler" becomes "Cpu Cooler", "power-supply" becomes "Power Supply"
+        const convertedName = appliedFilters.category
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+
+        // Check if the converted name exists in the category map
+        if (categoryNameToIdMap[convertedName]) {
+          actualCategoryName = convertedName;
+        } else {
+          // As a last resort, check if the original URL parameter exists in the category map
+          // This handles cases where the URL parameter matches the actual category name
+          if (categoryNameToIdMap[appliedFilters.category]) {
+            actualCategoryName = appliedFilters.category;
+          }
+        }
+      }
+
+      // Check if the actual category name exists in our map
+      if (actualCategoryName && categoryNameToIdMap[actualCategoryName]) {
+        params.category_id = categoryNameToIdMap[actualCategoryName];
+      }
+      // If the selected category name is not found in the map, the filter is ignored
+      // This can happen if categories change or the filter name is invalid
+
+      // Apply price range filter - Convert DZD to cents
+      if (filters.minPrice) {
+        const minPriceCents = parseFloat(filters.minPrice) * 100; // Assuming input is in DZD
+        // Validate conversion
+        if (!isNaN(minPriceCents) && minPriceCents > 0) {
+          params.min_price = Math.round(minPriceCents); // Round to nearest cent
+        }
+      }
+      if (filters.maxPrice) {
+        const maxPriceCents = parseFloat(filters.maxPrice) * 100; // Assuming input is in DZD
+        // Validate conversion
+        if (!isNaN(maxPriceCents) && maxPriceCents > 0) {
+          params.max_price = Math.round(maxPriceCents); // Round to nearest cent
+        }
+      }
+
+      // Apply brand filter
+      if (filters.brand) {
+        params.brand = filters.brand;
+      }
+
+      // Add other filters here if needed (e.g., in_stock_only, include_discounted_only)
+      // Example:
+      // if (filters.inStockOnly) {
+      //   params.in_stock_only = true;
+      // }
+      // if (filters.includeDiscountedOnly) {
+      //   params.include_discounted_only = true;
+      // }
+
+      console.log("DEBUG: Constructed API search params:", params); // Debug log
+      return params;
+    };
+  }, [filters, categoryNameToIdMap]); // Dependency on filters and the name-to-id map
+
+  // Fetch products using searchProducts and current filters via useQuery
+  // The queryKey now includes the filters state, ensuring a new request when filters change
+  const {
+    data: productsData = {
+      data: [],
+      page: 1,
+      limit: 20,
+      total: 0,
+      total_pages: 1,
+    }, // Provide a default structure
+    isLoading: productsLoading,
+    isError: productsError,
+    error: productsApiError,
+    refetch: refetchProducts, // Function to manually refetch if needed
+  } = useQuery({
+    queryKey: ["searchProducts", filters, categories], // Include filters and categories (for mapping) in key
+    queryFn: async () => {
+      // Get the current parameters based on the latest filters and category map
+      const currentParams = buildSearchParams();
+      console.log("DEBUG: Calling searchProducts with params:", currentParams); // Debug log
+      // Call searchProducts with the constructed parameters
+      const result = await searchProducts(currentParams);
+      console.log("DEBUG: searchProducts API call returned:", result); // Debug log
+      return result; // Return the API response object
+    },
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes based on filters
+    enabled: categories.length > 0, // Only run the search query once categories are loaded (for mapping)
+  });
+
   // Destructure products array and pagination info from productsData
-  const { data: products = [] } = productsData; // Destructure the 'data' key - CORRECTED SYNTAX
+  const { data: products = [] } = productsData; // Destructure the 'data' key
 
   // Combine loading states if needed for a single spinner covering both products and categories
   const overallLoading = productsLoading || categoriesLoading;
@@ -61,21 +161,15 @@ const Products = () => {
   const overallErrorMessage = productsApiError?.message ||
     categoriesApiError?.message || "An unknown error occurred";
 
-  // Memoize filtered products to avoid re-filtering on every render
-  // For now, apply NO client-side filtering, just use the products from the API result
-  // We will add API-based filtering later using searchProducts
+  // Memoize filtered products - now it's just the products returned by the API based on filters
+  // We rely on the backend filtering via searchProducts
   const filteredProducts = useMemo(() => {
-    console.log("DEBUG: Applying filters to products from API");
-    console.log("DEBUG: Raw products from API:", products);
-    console.log("DEBUG: Current filters:", filters);
-    console.log("DEBUG: Available categories for mapping:", categories);
-
-    // For now, just return the products array from the API call.
-    // We will implement filtering via searchProducts later.
-    // This is the simplest case where API handles the filtering.
-    // If filters were applied via searchProducts, this would be the result.
+    console.log(
+      "DEBUG: Using products from API (filtered by backend):",
+      products.length,
+    );
     return products;
-  }, [products, filters, categories]); // Dependency array includes products, filters, and categories
+  }, [products]); // Dependency on products from the query result
 
   const handleFilterChange = (key, value) => {
     if (key === "reset") {
@@ -176,19 +270,12 @@ const Products = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             categories={categories} // Pass the categories fetched by useQuery
-            loading={categoriesLoading} // Pass loading state if FilterPanel needs it (though skeleton is handled above now)
+            loading={categoriesLoading} // Pass loading state if FilterPanel needs it
           />
         </div>
 
         {/* Product Grid */}
         <div className="lg:col-span-3">
-          {/* Results Count - Optional, based on API pagination data */}
-          {
-            /* <p className="mb-4 ">
-            Showing {filteredProducts.length} of {productsData.total} products
-          </p> */
-          }
-
           {filteredProducts.length === 0
             ? (
               <div className="text-center py-12">
