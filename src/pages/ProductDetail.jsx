@@ -254,6 +254,12 @@ const ProductDetail = () => {
     : 0;
   // --- End of Determination ---
 
+  // --- Determine Rating Information ---
+  const hasRatings = product.num_ratings && product.num_ratings > 0;
+  const avgRating = hasRatings ? (product.avg_rating || 0) : 0;
+  const numRatings = product.num_ratings || 0;
+  // --- End of Determination ---
+
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       {/* Updated Link with btn-sm */}
@@ -352,7 +358,11 @@ const ProductDetail = () => {
                 </tr>
                 <tr>
                   <td>Avg Rating</td>
-                  <td>{product.avg_rating} ({product.num_ratings} reviews)</td>
+                  <td>
+                    {hasRatings ? avgRating.toFixed(2) : "N/A"} ({numRatings}
+                    {" "}
+                    reviews)
+                  </td>
                 </tr>
               </tbody>
             </table>

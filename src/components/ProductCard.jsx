@@ -95,6 +95,12 @@ const ProductCard = ({ product }) => {
     : 0;
   // --- End of Determination ---
 
+  // --- Determine Rating Information ---
+  const hasRatings = product.num_ratings && product.num_ratings > 0;
+  const avgRating = hasRatings ? (product.avg_rating || 0) : 0;
+  const numRatings = product.num_ratings || 0;
+  // --- End of Determination ---
+
   return (
     <div
       className={`card bg-base-100 shadow-sm hover:shadow-2xl transition-shadow duration-300 relative border rounded-lg border-info`}
@@ -121,8 +127,9 @@ const ProductCard = ({ product }) => {
         {/* Use product.name */}
         <div className="flex items-center gap-1">
           <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
-          <span className="text-xs">4.5</span>
-          <span className="text-xs text-gray-500">(128)</span>
+          <span className="text-xs">
+            {hasRatings ? avgRating.toFixed(2) : "N/A"} ({numRatings} reviews)
+          </span>
         </div>
         <p className="text-sm text-gray-600 line-clamp-2">
           {product.short_description || product.description}{" "}

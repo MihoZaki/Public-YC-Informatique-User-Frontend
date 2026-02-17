@@ -18,7 +18,7 @@ const AccountSettings = () => {
     reset: resetProfileForm, // To reset form after successful submission
   } = useForm({
     defaultValues: { // Set default values from the user object
-      name: user?.name || "",
+      name: user?.full_name || "",
       email: user?.email || "",
     },
   });
