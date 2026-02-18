@@ -302,8 +302,42 @@ export const fetchCategoryById = async (id) => {
   }
 };
 
+// --- Checkout Endpoints ---
+
+/**
+ * Places an order for a guest user using their session cart.
+ * @param {Object} orderData - The order details including shipping address and payment method.
+ * @returns {Promise<Object>} The response data containing the created order and items.
+ */
+export const placeGuestOrder = async (orderData) => {
+  try {
+    // Note: The session ID is handled automatically via the 'withCredentials: true' and cookies
+    const response = await apiClient.post("/v1/checkout/guest", orderData);
+    return response.data; // Returns { order: { ... }, items: [...] }
+  } catch (error) {
+    console.error("Error placing guest order:", error);
+    throw error;
+  }
+};
+
 // --- User Cart Endpoints (Require Authorization Token) ---
 // Note: The interceptor handles adding the Authorization header automatically if token exists in localStorage
+/**
+ * Adds multiple items to the user's cart in a single request.
+ * @param {Array<{product_id: string, quantity: number}>} items - Array of items to add.
+ * @returns {Promise<Object>} The response data containing the updated cart summary.
+ */
+export const bulkAddToCart = async (items) => {
+  try {
+    const response = await apiClient.post("/v1/cart/bulk-add", {
+      items: items,
+    });
+    return response.data; // Returns { message: "...", cart_summary: { ... } }
+  } catch (error) {
+    console.error("Error adding items to cart in bulk:", error);
+    throw error;
+  }
+};
 
 /**
  * Fetches the current user's cart.
@@ -446,6 +480,8 @@ export const fetchUserOrders = async (page = 1, limit = 20) => {
 };
 
 // --- User Profile Endpoints (Require Authorization Token) ---
+// Assuming these endpoints exist and follow the pattern seen in admin
+// Check actual API docs for exact paths and payload structure if they differ from admin
 
 /**
  * Updates the current user's profile information (name, email).
