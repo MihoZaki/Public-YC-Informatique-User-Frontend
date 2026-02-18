@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../contexts/AuthContext"; // Import useAuth to check if user is logged in
+import { useAuth } from "../contexts/AuthContext"; 
 import {
-  // REMOVED: addItemToCart, // No longer needed
   fetchProductById,
   searchProducts,
   submitReview,

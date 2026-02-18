@@ -36,6 +36,8 @@ export const CartProvider = ({ children }) => {
     return `${BACKEND_BASE_URL}${imageUrl}`;
   };
 
+  const cartQueryKey = isAuthenticated ? ["cart", user?.id] : ["cart", "guest"];
+
   // 1. QUERY TO FETCH CART DATA FROM THE API
   const {
     data: backendCartData = { items: [], total_amount_cents: 0 }, // Default value to prevent errors
@@ -44,9 +46,9 @@ export const CartProvider = ({ children }) => {
     error: cartError,
     refetch: refetchCart,
   } = useQuery({
-    queryKey: ["cart", user?.id], // Unique key, depends on user ID
-    queryFn: () => fetchUserCart(), // API function to fetch cart
-    enabled: !!user, // Only fetch if user is authenticated
+    queryKey: cartQueryKey, // Use the dynamic key
+    queryFn: () => fetchUserCart(), // API function to fetch cart (relies on session cookie for guests)
+    enabled: true, // Enable for both authed and unauthed now
     staleTime: 0, // Data becomes stale immediately, forcing refetch on invalidation
     cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
     onError: (error) => {
@@ -108,7 +110,8 @@ export const CartProvider = ({ children }) => {
     mutationFn: ({ productId, quantity }) => addItemToCart(productId, quantity),
     onSuccess: () => {
       // Invalidate and refetch the cart query to get the updated data from the backend
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      // Use the current query key to invalidate the correct cache entry
+      queryClient.invalidateQueries({ queryKey: cartQueryKey });
       toast.success("Item added to cart!"); // Show success toast
     },
     onError: (error) => {
@@ -125,7 +128,7 @@ export const CartProvider = ({ children }) => {
       updateCartItem(cartItemId, quantity),
     onSuccess: () => {
       // Invalidate and refetch the cart query to get the updated data from the backend
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      queryClient.invalidateQueries({ queryKey: cartQueryKey });
       toast.success("Quantity updated!"); // Show success toast
     },
     onError: (error) => {
@@ -141,7 +144,7 @@ export const CartProvider = ({ children }) => {
     mutationFn: (cartItemId) => removeCartItem(cartItemId),
     onSuccess: () => {
       // Invalidate and refetch the cart query to get the updated data from the backend
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      queryClient.invalidateQueries({ queryKey: cartQueryKey });
       toast.success("Item removed from cart!"); // Show success toast
     },
     onError: (error) => {
@@ -157,7 +160,7 @@ export const CartProvider = ({ children }) => {
     mutationFn: () => clearUserCart(),
     onSuccess: () => {
       // Invalidate and refetch the cart query to get the updated (empty) data from the backend
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      queryClient.invalidateQueries({ queryKey: cartQueryKey });
       toast.success("Cart cleared!"); // Show success toast
     },
     onError: (error) => {
@@ -232,6 +235,7 @@ export const CartProvider = ({ children }) => {
     isUpdatingQuantity: updateQuantityMutation.isPending,
     isRemovingItem: removeCartItemMutation.isPending,
     isClearingCart: clearCartMutation.isPending,
+    isAuthenticated, // Expose auth status to components if needed for logic
   };
 
   return (
