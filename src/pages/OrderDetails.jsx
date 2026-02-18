@@ -11,6 +11,11 @@ const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
 const OrderDetails = () => {
   const { orderId } = useParams(); // Get the order ID from the URL
 
+  // Helper function to truncate UUID
+  const truncateUuid = (uuid) => {
+    if (!uuid || typeof uuid !== "string") return "N/A";
+    return `${uuid.substring(0, 8)}...`;
+  };
   // Function to construct full image URL
   const constructImageUrl = (imageUrl) => {
     if (!imageUrl) return "";
@@ -156,6 +161,7 @@ const OrderDetails = () => {
                   <thead>
                     <tr>
                       <th className="font-bold">Item</th>
+                      <th className="font-bold">product ID</th>
                       <th className="font-bold">Price</th>
                       <th className="font-bold">Quantity</th>
                       <th className="font-bold">Total</th>
@@ -165,35 +171,25 @@ const OrderDetails = () => {
                     {items && items.length > 0
                       ? (
                         items.map((orderItem) => {
-                          const item = orderItem.product; // Access the product details from the nested object
                           return (
                             <tr key={orderItem.id}>
                               <td>
                                 <div className="flex items-center gap-4">
-                                  <div className="rounded-md overflow-hidden bg-base-200 p-1 w-16 h-16 flex-shrink-0">
-                                    {/* Use the constructed image URL */}
-                                    <img
-                                      src={item.image_urls &&
-                                          item.image_urls.length > 0
-                                        ? constructImageUrl(item.image_urls[0])
-                                        : "https://placehold.co/100x100?text=No+Image  "}
-                                      alt={item.name}
-                                      className="w-full h-full object-contain rounded-none" // Fill container
-                                    />
-                                  </div>
                                   <div>
-                                    <p className="font-semibold">{item.name}</p>
-                                    <p className="text-sm text-gray-500">
-                                      {item.brand}
+                                    <p className="font-semibold">
+                                      {orderItem.product_name}
                                     </p>
+                                    {/* Brand is likely not available in this structure */}
+                                    {/* <p className="text-sm text-gray-500">{item.brand}</p> */}
                                   </div>
                                 </div>
                               </td>
-                              <td>{formatCurrency(item.final_price_cents)}</td>
+                              <td>{truncateUuid(orderItem.product_id)}</td>
+                              <td>{formatCurrency(orderItem.price_cents)}</td>
                               <td>{orderItem.quantity}</td>
                               <td>
                                 {formatCurrency(
-                                  item.final_price_cents * orderItem.quantity,
+                                  orderItem.subtotal_cents, // Use subtotal_cents from the order item
                                 )}
                               </td>
                             </tr>
