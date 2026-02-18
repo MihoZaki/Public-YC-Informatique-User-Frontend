@@ -446,8 +446,6 @@ export const fetchUserOrders = async (page = 1, limit = 20) => {
 };
 
 // --- User Profile Endpoints (Require Authorization Token) ---
-// Assuming these endpoints exist and follow the pattern seen in admin
-// Check actual API docs for exact paths and payload structure if they differ from admin
 
 /**
  * Updates the current user's profile information (name, email).
