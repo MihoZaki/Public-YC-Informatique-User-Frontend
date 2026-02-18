@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useStore } from "../stores/useStore";
 import {
   addItemToCart,
@@ -8,6 +8,7 @@ import {
   updateCartItem,
 } from "../services/api";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; // Import TanStack Query hooks
 
 // Import the auth context to listen for changes
 import { useAuth } from "../contexts/AuthContext";
@@ -18,31 +19,9 @@ const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const {
-    cart,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    setCartFromBackend, // Add new function to the store to set cart directly
-  } = useStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
-
-  // Get auth context to detect login/logout events
-  const { user, isAuthenticated } = useAuth();
-
-  // Calculate totals
-  const subtotal = cart.reduce((sum, item) => {
-    const price = typeof item.price === "number"
-      ? item.price
-      : parseFloat(item.price);
-    const quantity = typeof item.quantity === "number"
-      ? item.quantity
-      : parseInt(item.quantity);
-    return sum + (isNaN(price) ? 0 : price) * (isNaN(quantity) ? 0 : quantity);
-  }, 0);
-  const total = subtotal;
+  const queryClient = useQueryClient(); // Get the query client instance
+  const { cart: localCart } = useStore(); // We might still use the local store for optimistic updates if desired
+  const { user, isAuthenticated } = useAuth(); // Get auth context
 
   // Function to construct full image URL
   const constructImageUrl = (imageUrl) => {
@@ -57,208 +36,206 @@ export const CartProvider = ({ children }) => {
     return `${BACKEND_BASE_URL}${imageUrl}`;
   };
 
-  // Function to sync the entire cart with the backend
-  const syncCartWithBackend = async () => {
-    try {
-      const backendCart = await fetchUserCart();
+  // 1. QUERY TO FETCH CART DATA FROM THE API
+  const {
+    data: backendCartData = { items: [], total_amount_cents: 0 }, // Default value to prevent errors
+    isLoading: isCartLoading,
+    isError: isCartError,
+    error: cartError,
+    refetch: refetchCart,
+  } = useQuery({
+    queryKey: ["cart", user?.id], // Unique key, depends on user ID
+    queryFn: () => fetchUserCart(), // API function to fetch cart
+    enabled: !!user, // Only fetch if user is authenticated
+    staleTime: 0, // Data becomes stale immediately, forcing refetch on invalidation
+    cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
+    onError: (error) => {
+      console.error("Error fetching cart:", error);
+      // Optionally show a toast error here if it's a persistent issue
+      // toast.error("Failed to load cart. Please try again.");
+    },
+  });
 
-      if (backendCart.items && Array.isArray(backendCart.items)) {
-        // Prepare cart items from backend data
-        const cartItemsFromBackend = backendCart.items.map((cartItem) => {
-          const product = cartItem.product;
-          const unitPrice = product.final_price_cents / 100; // Use product's final price
+  // Process backend data for UI consumption (similar to syncCartWithBackend logic)
+  const processedCart = React.useMemo(() => {
+    if (!backendCartData.items || !Array.isArray(backendCartData.items)) {
+      return [];
+    }
+    return backendCartData.items.map((cartItem) => {
+      const product = cartItem.product;
+      const unitPrice = product.final_price_cents / 100; // Use product's final price
 
-          // Construct full image URL
-          const fullImageUrl =
-            product.image_urls && product.image_urls.length > 0
-              ? constructImageUrl(product.image_urls[0])
-              : "";
+      // Construct full image URL
+      const fullImageUrl = product.image_urls && product.image_urls.length > 0
+        ? constructImageUrl(product.image_urls[0])
+        : "";
 
-          return {
-            id: product.id,
-            name: product.name,
-            price: unitPrice, // This is the final/discounted price
-            original_price_cents: product.original_price_cents, // Preserve original price
-            final_price_cents: product.final_price_cents, // Preserve final price
-            image: fullImageUrl, // Use the constructed full image URL
-            // Replace with your backend URL            quantity: cartItem.quantity, // This is the crucial part - use the actual quantity from backend
-            cart_item_id: cartItem.id, // Store the backend cart item ID
-            brand: product.brand,
-            stock_quantity: product.stock_quantity,
-            has_active_discount: product.has_active_discount,
-          };
-        });
+      return {
+        id: product.id,
+        name: product.name,
+        price: unitPrice, // This is the final/discounted price
+        original_price_cents: product.original_price_cents, // Preserve original price
+        final_price_cents: product.final_price_cents, // Preserve final price
+        image: fullImageUrl, // Use the constructed full image URL
+        quantity: cartItem.quantity, // Use the quantity from backend
+        cart_item_id: cartItem.id, // Store the backend cart item ID
+        brand: product.brand,
+        stock_quantity: product.stock_quantity,
+        has_active_discount: product.has_active_discount,
+      };
+    });
+  }, [backendCartData, constructImageUrl]);
 
-        // Set the entire cart state directly from backend data
-        setCartFromBackend(cartItemsFromBackend);
+  // Calculate totals based on processed cart data from the query
+  const { subtotal, total } = React.useMemo(() => {
+    let sub = 0;
+    processedCart.forEach((item) => {
+      const price = typeof item.price === "number"
+        ? item.price
+        : parseFloat(item.price);
+      const quantity = typeof item.quantity === "number"
+        ? item.quantity
+        : parseInt(item.quantity);
+      if (!isNaN(price) && !isNaN(quantity)) {
+        sub += price * quantity;
       }
-    } catch (error) {
-      // Handle unauthorized error specifically
-      if (error.response?.status === 401) {
-        // User is not authorized, which might mean token expired
-        // Don't clear cart in this case, as it might be a guest cart
-        console.warn(
-          "Cart sync failed due to authorization error, continuing with current cart",
-        );
-      } else {
-        console.error("Failed to sync cart with backend:", error);
-        // Don't clear cart on sync failure - maintain current state
-        // Clear the cart if there's an error (user not logged in)
-        clearCart();
-      }
+    });
+    return { subtotal: sub, total: sub }; // Assuming total equals subtotal
+  }, [processedCart]);
+
+  // 2. MUTATION TO ADD AN ITEM TO THE CART
+  const addCartItemMutation = useMutation({
+    mutationFn: ({ productId, quantity }) => addItemToCart(productId, quantity),
+    onSuccess: () => {
+      // Invalidate and refetch the cart query to get the updated data from the backend
+      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      toast.success("Item added to cart!"); // Show success toast
+    },
+    onError: (error) => {
+      console.error("Error adding item to cart:", error);
+      const errorMessage = error?.response?.data?.message || error.message ||
+        "Failed to add item to cart. Please try again.";
+      toast.error(errorMessage); // Show error toast
+    },
+  });
+
+  // 3. MUTATION TO UPDATE ITEM QUANTITY IN THE CART
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ cartItemId, quantity }) =>
+      updateCartItem(cartItemId, quantity),
+    onSuccess: () => {
+      // Invalidate and refetch the cart query to get the updated data from the backend
+      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      toast.success("Quantity updated!"); // Show success toast
+    },
+    onError: (error) => {
+      console.error("Error updating quantity:", error);
+      const errorMessage = error?.response?.data?.message || error.message ||
+        "Failed to update quantity. Please try again.";
+      toast.error(errorMessage); // Show error toast
+    },
+  });
+
+  // 4. MUTATION TO REMOVE AN ITEM FROM THE CART
+  const removeCartItemMutation = useMutation({
+    mutationFn: (cartItemId) => removeCartItem(cartItemId),
+    onSuccess: () => {
+      // Invalidate and refetch the cart query to get the updated data from the backend
+      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      toast.success("Item removed from cart!"); // Show success toast
+    },
+    onError: (error) => {
+      console.error("Error removing item from cart:", error);
+      const errorMessage = error?.response?.data?.message || error.message ||
+        "Failed to remove item from cart. Please try again.";
+      toast.error(errorMessage); // Show error toast
+    },
+  });
+
+  // 5. MUTATION TO CLEAR THE ENTIRE CART
+  const clearCartMutation = useMutation({
+    mutationFn: () => clearUserCart(),
+    onSuccess: () => {
+      // Invalidate and refetch the cart query to get the updated (empty) data from the backend
+      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      toast.success("Cart cleared!"); // Show success toast
+    },
+    onError: (error) => {
+      console.error("Error clearing cart:", error);
+      const errorMessage = error?.response?.data?.message || error.message ||
+        "Failed to clear cart. Please try again.";
+      toast.error(errorMessage); // Show error toast
+    },
+  });
+
+  // Define functions that wrap the mutations for easier use in components
+  const addToCart = async (product) => {
+    addCartItemMutation.mutate({
+      productId: product.id,
+      quantity: product.quantity || 1,
+    });
+  };
+
+  const updateQuantity = async (productId, newQuantity) => {
+    // Find the cart_item_id associated with the product ID
+    const cartItem = processedCart.find((item) => item.id === productId);
+    if (cartItem) {
+      updateQuantityMutation.mutate({
+        cartItemId: cartItem.cart_item_id,
+        quantity: newQuantity,
+      });
+    } else {
+      console.error(
+        `Cart item with product ID ${productId} not found for update.`,
+      );
+      toast.error("Item not found in cart for update.");
     }
   };
 
-  // Load cart from backend on component mount
-  useEffect(() => {
-    const loadCartFromBackend = async () => {
-      setIsLoading(true);
-      try {
-        await syncCartWithBackend();
-      } catch (error) {
-        console.error("Failed to load cart from backend:", error);
-        clearCart();
-      } finally {
-        setIsLoading(false);
-        setIsInitialized(true); // Mark as initialized
-      }
-    };
-
-    loadCartFromBackend();
-  }, []); // Remove dependencies to prevent re-running
-
-  // Effect to sync cart when user authentication status changes
-  useEffect(() => {
-    if (isInitialized) {
-      // Refresh cart when authentication status changes
-      syncCartWithBackend();
-    }
-  }, [isAuthenticated, isInitialized]);
-
-  // Enhanced cart actions that sync with backend
-  const syncAddToCart = async (product) => {
-    if (!isInitialized) {
-      toast.error("Cart not ready. Please try again.");
-      return;
-    }
-
-    try {
-      // Call backend API first
-      const response = await addItemToCart(product.id, product.quantity || 1);
-
-      // After adding to backend, sync the entire cart to ensure consistency
-      await syncCartWithBackend();
-    } catch (error) {
-      // Handle unauthorized error specifically
-      if (error.response?.status === 401) {
-        toast.error("Please log in to add items to your cart.");
-      } else {
-        console.error("Failed to add item to cart:", error);
-        toast.error("Failed to add item to cart. Please try again.");
-      }
+  const removeFromCart = async (productId) => {
+    // Find the cart_item_id associated with the product ID
+    const cartItem = processedCart.find((item) => item.id === productId);
+    if (cartItem) {
+      removeCartItemMutation.mutate(cartItem.cart_item_id);
+    } else {
+      console.error(
+        `Cart item with product ID ${productId} not found for removal.`,
+      );
+      toast.error("Item not found in cart for removal.");
     }
   };
 
-  const syncRemoveFromCart = async (productId) => {
-    if (!isInitialized) {
-      toast.error("Cart not ready. Please try again.");
-      return;
-    }
-
-    try {
-      // Find the cart item ID in the current cart
-      const cartItem = cart.find((item) => item.id === productId);
-      if (cartItem && cartItem.cart_item_id) {
-        await removeCartItem(cartItem.cart_item_id);
-      }
-
-      // After removing from backend, sync the entire cart to ensure consistency
-      await syncCartWithBackend();
-    } catch (error) {
-      // Handle unauthorized error specifically
-      if (error.response?.status === 401) {
-        toast.error("Please log in to manage your cart.");
-      } else {
-        console.error("Failed to remove item from cart:", error);
-        toast.error("Failed to remove item from cart. Please try again.");
-      }
-    }
+  const clearCart = async () => {
+    clearCartMutation.mutate();
   };
 
-  const syncUpdateQuantity = async (productId, quantity) => {
-    if (!isInitialized) {
-      toast.error("Cart not ready. Please try again.");
-      return;
-    }
-
-    try {
-      if (quantity <= 0) {
-        await syncRemoveFromCart(productId);
-        return;
-      }
-
-      // Find the cart item ID in the current cart
-      const cartItem = cart.find((item) => item.id === productId);
-      if (cartItem && cartItem.cart_item_id) {
-        await updateCartItem(cartItem.cart_item_id, quantity);
-
-        // After updating backend, sync the entire cart to ensure consistency
-        await syncCartWithBackend();
-      }
-    } catch (error) {
-      // Handle unauthorized error specifically
-      if (error.response?.status === 401) {
-        toast.error("Please log in to update your cart.");
-      } else {
-        console.error("Failed to update quantity:", error);
-        toast.error("Failed to update quantity. Please try again.");
-      }
-    }
+  // Function to manually refresh the cart
+  const refreshCart = () => {
+    refetchCart();
   };
 
-  const syncClearCart = async () => {
-    if (!isInitialized) {
-      toast.error("Cart not ready. Please try again.");
-      return;
-    }
-
-    try {
-      await clearUserCart();
-
-      // Update local store
-      clearCart();
-    } catch (error) {
-      // Handle unauthorized error specifically
-      if (error.response?.status === 401) {
-        toast.error("Please log in to clear your cart.");
-      } else {
-        console.error("Failed to clear cart:", error);
-        toast.error("Failed to clear cart. Please try again.");
-      }
-    }
-  };
-
-  // Expose a method to manually refresh the cart
-  const refreshCart = async () => {
-    setIsLoading(true);
-    await syncCartWithBackend();
-    setIsLoading(false);
+  // Construct the context value
+  const contextValue = {
+    cart: processedCart, // Use the cart data from the query
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    refreshCart,
+    subtotal,
+    total,
+    isLoading: isCartLoading, // Use loading state from the query
+    isError: isCartError, // Expose error state if needed
+    error: cartError, // Expose error details if needed
+    // Expose mutation statuses if needed for granular control in UI
+    isAddingItem: addCartItemMutation.isPending,
+    isUpdatingQuantity: updateQuantityMutation.isPending,
+    isRemovingItem: removeCartItemMutation.isPending,
+    isClearingCart: clearCartMutation.isPending,
   };
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart: syncAddToCart,
-        removeFromCart: syncRemoveFromCart,
-        updateQuantity: syncUpdateQuantity,
-        clearCart: syncClearCart,
-        refreshCart, // Expose the refresh function
-        subtotal,
-        total,
-        isLoading, // Add loading state
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

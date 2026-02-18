@@ -1,11 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/CartContext"; // Use the refactored context
 import { TrashIcon } from "@heroicons/react/24/solid";
 
 const Cart = () => {
-  const { cart, subtotal, total, updateQuantity, removeFromCart, clearCart } =
-    useCart();
+  const {
+    cart,
+    subtotal,
+    total,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    isLoading, // Get loading state from the context
+    isError, // Get error state from the context
+    error, // Get error details from the context
+    isUpdatingQuantity, // Get mutation loading states if needed for UI
+    isRemovingItem,
+    // ... potentially other mutation states
+  } = useCart();
 
   // Initialize localQuantities with the current cart quantities
   const [localQuantities, setLocalQuantities] = useState(
@@ -18,7 +30,7 @@ const Cart = () => {
   // Ref to store timeout IDs for each item
   const timeoutRefs = useRef({});
 
-  // Update localQuantities whenever the cart changes
+  // Update localQuantities whenever the cart changes (when refetched from API)
   useEffect(() => {
     setLocalQuantities(
       cart.reduce((acc, item) => {
@@ -26,7 +38,7 @@ const Cart = () => {
         return acc;
       }, {}),
     );
-  }, [cart]);
+  }, [cart]); // Depend on the cart array from the context (which updates after refetch)
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -60,10 +72,11 @@ const Cart = () => {
 
     // Schedule the backend update after 500ms
     timeoutRefs.current[productId] = setTimeout(() => {
-      // Check if the item is still in the cart
+      // Check if the item is still in the cart (might be redundant if item exists check above passes)
       const itemExists = cart.some((item) => item.id === productId);
       if (itemExists) {
         // Call the actual cart update function with the limited quantity
+        // This now triggers a TanStack Query mutation
         updateQuantity(productId, limitedQuantity);
       }
       // Clean up the timeout ref after execution
@@ -95,7 +108,7 @@ const Cart = () => {
   };
 
   // Calculate total original value, total discounted value, and total savings from the cart
-  // These values come directly from the backend response
+  // These values come directly from the backend response (now via the context's query/memo)
   const { totalOriginalValue, totalDiscountedValue, totalSavings } = useMemo(
     () => {
       let originalValue = 0;
@@ -110,27 +123,77 @@ const Cart = () => {
         // Extract price info from the product object
         const originalPrice = item.original_price_cents
           ? item.original_price_cents / 100
-          : item.price;
+          : (typeof item.price === "number" ? item.price : 0);
         const finalPrice = item.final_price_cents
           ? item.final_price_cents / 100
-          : item.price;
+          : (typeof item.price === "number" ? item.price : 0);
         const hasDiscount = item.has_active_discount;
 
-        originalValue += originalPrice * quantity;
-        discountedValue += finalPrice * quantity;
-        if (hasDiscount) {
+        // Only add to totals if both price and quantity are valid numbers
+        if (
+          typeof originalPrice === "number" && !isNaN(originalPrice) &&
+          typeof quantity === "number" && !isNaN(quantity)
+        ) {
+          originalValue += originalPrice * quantity;
+        }
+
+        if (
+          typeof finalPrice === "number" && !isNaN(finalPrice) &&
+          typeof quantity === "number" && !isNaN(quantity)
+        ) {
+          discountedValue += finalPrice * quantity;
+        }
+
+        if (
+          hasDiscount && typeof originalPrice === "number" &&
+          !isNaN(originalPrice) &&
+          typeof finalPrice === "number" && !isNaN(finalPrice) &&
+          typeof quantity === "number" && !isNaN(quantity)
+        ) {
           savings += (originalPrice - finalPrice) * quantity;
         }
       });
 
       return {
-        totalOriginalValue: originalValue,
-        totalDiscountedValue: discountedValue,
-        totalSavings: savings,
+        totalOriginalValue: isNaN(originalValue) ? 0 : originalValue,
+        totalDiscountedValue: isNaN(discountedValue) ? 0 : discountedValue,
+        totalSavings: isNaN(savings) ? 0 : savings,
       };
     },
     [cart, localQuantities],
   );
+
+  // Show loading state while fetching cart data
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <span className="loading loading-spinner loading-lg"></span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if fetching cart data failed
+  if (isError) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
+        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+        <div className="alert alert-error">
+          <p>
+            Error loading cart: {error?.message || "An unknown error occurred"}
+          </p>
+          <button
+            className="btn btn-sm"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
@@ -158,15 +221,19 @@ const Cart = () => {
                   // Extract price info from the product object
                   const originalPrice = item.original_price_cents
                     ? item.original_price_cents / 100
-                    : item.price;
+                    : (typeof item.price === "number" ? item.price : 0);
                   const finalPrice = item.final_price_cents
                     ? item.final_price_cents / 100
-                    : item.price;
+                    : (typeof item.price === "number" ? item.price : 0);
                   const hasDiscount = item.has_active_discount;
 
                   // Calculate max quantity based on stock
                   const maxQuantity = item.stock_quantity;
                   const isAtMaxStock = displayQuantity >= maxQuantity;
+
+                  // Determine if the +/- buttons are disabled based on mutation state
+                  const isQuantityUpdating = isUpdatingQuantity; // Simplified: disable all while any update is in progress
+                  // Or, you could make it more granular by tracking individual item updates if needed.
 
                   return (
                     <div
@@ -185,15 +252,21 @@ const Cart = () => {
                             <div className="flex items-center gap-2">
                               {hasDiscount && (
                                 <span className="line-through text-gray-500">
-                                  DZD {originalPrice.toFixed(2)}
+                                  DZD {isNaN(originalPrice)
+                                    ? "0.00"
+                                    : originalPrice.toFixed(2)}
                                 </span>
                               )}
                               <span className="text-primary font-bold">
-                                DZD {finalPrice.toFixed(2)}
+                                DZD {isNaN(finalPrice)
+                                  ? "0.00"
+                                  : finalPrice.toFixed(2)}
                               </span>
                               {hasDiscount && (
                                 <span className="badge badge-success bg-green-600 text-white">
-                                  -{originalPrice > 0
+                                  -{originalPrice > 0 &&
+                                      !isNaN(originalPrice) &&
+                                      !isNaN(finalPrice)
                                     ? ((1 - finalPrice / originalPrice) * 100)
                                       .toFixed(0)
                                     : "0"}%
@@ -220,6 +293,7 @@ const Cart = () => {
                               className="btn btn-xs"
                               onClick={() => handleDecreaseQuantity(item)}
                               type="button"
+                              disabled={isQuantityUpdating} // Disable during mutation
                             >
                               -
                             </button>
@@ -232,7 +306,7 @@ const Cart = () => {
                               }`}
                               onClick={() => handleIncreaseQuantity(item)}
                               type="button"
-                              disabled={isAtMaxStock}
+                              disabled={isAtMaxStock || isQuantityUpdating} // Disable during mutation or at max stock
                             >
                               +
                             </button>
@@ -240,6 +314,7 @@ const Cart = () => {
                           <button
                             className="btn btn-error btn-xs"
                             onClick={() => removeFromCart(item.id)}
+                            disabled={isRemovingItem} // Disable during remove mutation
                           >
                             <TrashIcon className="h-4 w-4 text-white" />
                           </button>
@@ -267,21 +342,30 @@ const Cart = () => {
                     <div className="flex justify-between">
                       <span>Original Price:</span>
                       <span className="line-through text-gray-500">
-                        DZD {totalOriginalValue.toFixed(2)}
+                        DZD {isNaN(totalOriginalValue)
+                          ? "0.00"
+                          : totalOriginalValue.toFixed(2)}
                       </span>
                     </div>
 
-                    {/* Current subtotal */}
+                    {/* Current subtotal - SAFEGUARDED */}
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>DZD {subtotal.toFixed(2)}</span>
+                      <span>
+                        DZD {isNaN(subtotal) ? "0.00" : subtotal.toFixed(2)}
+                      </span>
                     </div>
 
                     {/* Total savings */}
                     {totalSavings > 0 && (
                       <div className="flex justify-between text-success">
                         <span>You Save:</span>
-                        <span>-DZD {totalSavings.toFixed(2)}</span>
+                        <span>
+                          -DZD{" "}
+                          {isNaN(totalSavings)
+                            ? "0.00"
+                            : totalSavings.toFixed(2)}
+                        </span>
                       </div>
                     )}
 
@@ -293,15 +377,23 @@ const Cart = () => {
                     <div className="flex justify-between">
                       <span>Total Quantity:</span>
                       <span>
-                        {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                        {cart.reduce((sum, item) => {
+                          const qty = localQuantities[item.id] !== undefined
+                            ? localQuantities[item.id]
+                            : item.quantity;
+                          return sum + (typeof qty === "number" ? qty : 0);
+                        }, 0)}
                       </span>
                     </div>
 
                     <div className="divider"></div>
 
+                    {/* Total - SAFEGUARDED */}
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
-                      <span>DZD {total.toFixed(2)}</span>
+                      <span>
+                        DZD {isNaN(total) ? "0.00" : total.toFixed(2)}
+                      </span>
                     </div>
                   </div>
 
