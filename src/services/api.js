@@ -329,7 +329,7 @@ export const placeGuestOrder = async (orderData) => {
  */
 export const bulkAddToCart = async (items) => {
   try {
-    const response = await apiClient.post("/v1/cart/bulk-add", {
+    const response = await apiClient.post("/v1/cart/add-bulk", {
       items: items,
     });
     return response.data; // Returns { message: "...", cart_summary: { ... } }
