@@ -13,6 +13,11 @@ const Account = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to truncate UUID
+  const truncateUuid = (uuid) => {
+    if (!uuid || typeof uuid !== "string") return "N/A";
+    return `${uuid.substring(0, 8)}...`;
+  };
   // Function to construct full image URL
   const constructImageUrl = (imageUrl) => {
     if (!imageUrl) return "";
@@ -200,7 +205,7 @@ const Account = () => {
                       <tbody>
                         {recentOrders.map((order) => (
                           <tr key={order.id}>
-                            <td>{order.id}</td>
+                            <td>{truncateUuid(order.id)}</td>
                             <td>{formatDate(order.created_at)}</td>
                             <td>{formatDate(order.updated_at)}</td>
                             <td>

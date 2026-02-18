@@ -1,60 +1,69 @@
-// src/pages/MyOrders.jsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth to get user
 import { fetchUserOrders } from "../services/api"; // Import the API function
 import { toast } from "sonner"; // Import toast for error messages
 
 const MyOrders = () => {
   const { user } = useAuth(); // Get the authenticated user
-  const [orders, setOrders] = useState([]); // State to hold the orders
-  const [loading, setLoading] = useState(true); // State for loading
-  const [error, setError] = useState(null); // State for errors
   const [searchParams, setSearchParams] = useSearchParams(); // For pagination
 
   // Pagination constants
-  const ITEMS_PER_PAGE = 10; // Number of orders per page
-  const currentPage = parseInt(searchParams.get("page")) || 1; // Get current page from URL params, default to 1
+  const DEFAULT_PAGE = 1;
+  const DEFAULT_LIMIT = 10; // Number of orders per page
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (!user) {
-        // If no user, can't fetch orders
-        setError("User not authenticated.");
-        setLoading(false);
-        return;
-      }
+  // Get current page from URL params, default to 1
+  const currentPage = parseInt(searchParams.get("page")) || DEFAULT_PAGE;
+  // Get current limit from URL params, default to 10
+  const currentLimit = parseInt(searchParams.get("limit")) || DEFAULT_LIMIT;
 
-      try {
-        setError(null); // Reset error state
-        setLoading(true); // Set loading state
-        const data = await fetchUserOrders(user.id); // Fetch orders for the current user
-        setOrders(data); // Update state with fetched orders
-      } catch (err) {
-        console.error("Error fetching user orders:", err);
-        setError(
-          err.message || "Failed to load orders. Please try again later.",
-        );
-        toast.error("Failed to load orders. Please try again later.");
-      } finally {
-        setLoading(false); // Always stop loading
-      }
-    };
+  // Define the query key with pagination parameters
+  const queryKey = ["user-orders", user?.id, currentPage, currentLimit];
 
-    loadOrders();
-  }, [user]); // Depend on user.id to refetch if user changes
+  // Use TanStack Query to fetch orders
+  const {
+    data: ordersData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: () => fetchUserOrders(currentPage, currentLimit),
+    enabled: !!user, // Only run query if user exists
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Cache for 10 minutes
+    onError: (err) => {
+      console.error("Error fetching user orders:", err);
+      toast.error("Failed to load orders. Please try again later.");
+    },
+  });
 
-  // Calculate pagination details
-  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedOrders = orders.slice(startIndex, endIndex);
+  // Extract data from the query result using the correct structure from your working version
+  const orders = ordersData?.data || []; // Use ordersData.data as the array of orders
+  const totalPages = ordersData?.total_pages || 1;
+  const totalOrders = ordersData?.total || 0;
+
+  // Helper function to truncate UUID
+  const truncateUuid = (uuid) => {
+    if (!uuid || typeof uuid !== "string") return "N/A";
+    return `${uuid.substring(0, 8)}...`;
+  };
 
   // Handler for changing pages
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setSearchParams({ page: page.toString() }); // Update URL param
+      setSearchParams({
+        page: page.toString(),
+        limit: currentLimit.toString(),
+      }); // Update URL params
     }
+  };
+
+  // Handler for changing page size
+  const changePageSize = (newLimit) => {
+    setSearchParams({ page: "1", limit: newLimit.toString() }); // Reset to page 1 when changing limit
   };
 
   // Generate page number buttons
@@ -90,6 +99,23 @@ const MyOrders = () => {
     return pageButtons;
   };
 
+  // Format date helper function
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Format currency helper function
+  const formatCurrency = (cents) => {
+    if (!cents) return "DZD 0.00";
+    return `DZD ${(cents / 100).toFixed(2)}`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 bg-inherit min-h-screen">
       <h1 className="text-3xl font-bold mb-8">My Orders</h1>
@@ -102,18 +128,20 @@ const MyOrders = () => {
       </div>
 
       {/* Loading State */}
-      {loading && (
+      {isLoading && (
         <div className="flex justify-center items-center min-h-[200px]">
           <span className="loading loading-spinner loading-lg"></span>
         </div>
       )}
 
       {/* Error State */}
-      {error && !loading && (
+      {isError && !isLoading && (
         <div className="alert alert-error">
-          <p>{error}</p>
+          <p>
+            {error.message || "Failed to load orders. Please try again later."}
+          </p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => refetch()}
             className="btn btn-sm"
           >
             Retry
@@ -122,7 +150,7 @@ const MyOrders = () => {
       )}
 
       {/* Orders List */}
-      {!loading && !error && (
+      {!isLoading && !isError && (
         <>
           {orders.length === 0
             ? (
@@ -137,24 +165,43 @@ const MyOrders = () => {
               <>
                 {/* Pagination Controls Above Table */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                    <div className="flex items-center">
-                      {renderPageNumbers()}
+                  <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Show:</span>
+                      <select
+                        value={currentLimit}
+                        onChange={(e) => changePageSize(Number(e.target.value))}
+                        className="select select-sm select-bordered"
+                      >
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                      </select>
+                      <span className="text-sm ml-2">
+                        Page {currentPage} of {totalPages} ({totalOrders}{" "}
+                        total orders)
+                      </span>
                     </div>
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <div className="flex items-center mx-2">
+                        {renderPageNumbers()}
+                      </div>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -167,27 +214,32 @@ const MyOrders = () => {
                           <tr>
                             <th className="font-bold">Order #</th>
                             <th className="font-bold">Date</th>
+                            <th className="font-bold">Phone Number</th>
                             <th className="font-bold">Status</th>
                             <th className="font-bold">Total</th>
                             <th className="font-bold">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {paginatedOrders.map((order) => (
+                          {orders.map((order) => (
                             <tr key={order.id}>
-                              <td>{order.id}</td>
+                              <td>{truncateUuid(order.id)}</td>
+                              <td>{formatDate(order.created_at)}</td>
                               <td>
-                                {new Date(order.createdAt).toLocaleDateString()}
-                              </td>{" "}
-                              {/* Format date */}
+                                {order.phone_number_1 || order.phone_number_2 ||
+                                  "N/A"}
+                              </td>
                               <td>
                                 <span
                                   className={`badge ${
-                                    order.status === "completed"
+                                    order.status.toLowerCase() ===
+                                        "delivered" ||
+                                      order.status.toLowerCase() === "completed"
                                       ? "badge-success"
-                                      : order.status === "shipped"
+                                      : order.status.toLowerCase() === "shipped"
                                       ? "badge-info"
-                                      : order.status === "processing"
+                                      : order.status.toLowerCase() ===
+                                          "processing"
                                       ? "badge-warning"
                                       : "badge-neutral" // Default for other statuses
                                   }`}
@@ -197,8 +249,9 @@ const MyOrders = () => {
                                   {/* Capitalize status */}
                                 </span>
                               </td>
-                              <td>DZD {order.totalAmount.toFixed(2)}</td>{" "}
-                              {/* Format total */}
+                              <td>
+                                {formatCurrency(order.total_amount_cents)}
+                              </td>
                               <td>
                                 <Link
                                   to={`/account/order/${order.id}`} // Link to order details page
@@ -217,24 +270,32 @@ const MyOrders = () => {
 
                 {/* Pagination Controls Below Table */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                    <div className="flex items-center">
-                      {renderPageNumbers()}
+                  <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                    <div className="text-sm">
+                      Showing {(currentPage - 1) * currentLimit + 1} to{" "}
+                      {Math.min(currentPage * currentLimit, totalOrders)} of
+                      {" "}
+                      {totalOrders} orders
                     </div>
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <div className="flex items-center mx-2">
+                        {renderPageNumbers()}
+                      </div>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 )}
               </>
