@@ -8,7 +8,7 @@ import {
   StarIcon,
 } from "@heroicons/react/24/solid";
 import { useCart } from "../contexts/CartContext"; // Still need this to sync local cart
-import { addItemToCart } from "../services/api"; // Import the API function
+// REMOVED: import { addItemToCart } from "../services/api"; // No longer needed
 
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
   "http://localhost:8080";
@@ -16,7 +16,7 @@ const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL ||
 const ProductCard = ({ product }) => {
   const navigation = useNavigate();
   const savedTheme = localStorage.getItem("theme");
-  const { addToCart: addToLocalCart } = useCart(); // Renamed to avoid conflict
+  const { addToCart } = useCart(); // Use the context function directly
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -39,27 +39,19 @@ const ProductCard = ({ product }) => {
     setIsAdded(false);
 
     try {
-      // Call the API to add item to cart
-      const response = await addItemToCart(product.id, 1);
-
-      // Ensure the image added to the local cart is the first one from the product's image_urls
-      const imageForCart = product.image_urls && product.image_urls.length > 0
-        ? constructImageUrl(product.image_urls[0]) // Use the image URL constructor
-        : ""; // Fallback to empty string if no image_urls
-
-      // Determine price to add to cart based on discount (using new field names)
-      const priceForCart = product.has_active_discount &&
-          product.discounted_price_cents !== undefined
-        ? product.discounted_price_cents / 100 // Convert cents to dollars for cart display
-        : product.price_cents / 100; // Fallback to regular price (convert cents to dollars)
-
-      // Sync with local cart context after successful API call
-      addToLocalCart({
+      // Prepare the product object to pass to the context function
+      // The context function will handle the API call via TanStack Query
+      const productToAdd = {
         ...product,
         quantity: 1,
-        image: imageForCart, // Use the constructed image URL
-        price: priceForCart, // Use the calculated price
-      }); // Pass the correct image and price
+        image: product.image_urls && product.image_urls.length > 0
+          ? constructImageUrl(product.image_urls[0])
+          : "", // Use the constructed image URL
+        // The context will handle price calculation internally based on the product object
+      };
+
+      // Call the context function which uses TanStack Query
+      await addToCart(productToAdd);
 
       setIsAdded(true);
       toast.success(`"${product.name}" added to cart!`); // Use product.name
@@ -67,6 +59,8 @@ const ProductCard = ({ product }) => {
         setIsAdded(false);
       }, 1500);
     } catch (error) {
+      // Errors are now handled within the CartContext mutation
+      // But we can still catch here if needed for UI-specific logic
       console.error("Failed to add item to cart:", error);
       toast.error("Failed to add item to cart. Please try again.");
     } finally {
