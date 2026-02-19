@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react"; // Import useEffect
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // useNavigate is a hook, typically used inside components
 import { toast } from "sonner";
 import heroBackgroundImage from "../assets/heroBackgroundImage.png";
 
@@ -15,13 +15,13 @@ const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { login, register, user } = useAuth(); // Get register function as well
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Get navigate function from hook
 
-  // Redirect if already logged in
-  if (user) {
-    navigate("/"); // Or wherever you want to go after login
-    return null; // Don't render anything while navigating
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/"); // Perform navigation
+    }
+  }, [user, navigate]); // Dependency array: run effect if 'user' or 'navigate' changes
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -64,6 +64,7 @@ const AuthPage = () => {
       }
 
       // Navigate to appropriate page after successful auth
+      // This navigate call is inside an event handler (handleSubmit), which is correct
       navigate("/account");
     } catch (error) {
       console.error(isLogin ? "Login" : "Registration", "error:", error);
@@ -93,6 +94,17 @@ const AuthPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Conditional rendering based on user state is fine in the render function
+  // But navigation must happen in useEffect
+  if (user) {
+    // You can choose to return null here if you want the component to disappear immediately
+    // after navigation is triggered, or just let the rest of the component render.
+    // Often, the navigate() call itself is sufficient and the component will unmount
+    // as the router switches to the new route.
+    // For clarity, returning null is acceptable if you don't want any UI shown after nav.
+    return null; // Don't render anything if user is already logged in and navigation is triggered
+  }
 
   return (
     <div
