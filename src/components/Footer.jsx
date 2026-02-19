@@ -25,10 +25,10 @@ const Footer = () => {
       </div>
       <div className="p-5">
         <span className="footer-title font-black ">Company</span>
-        <Link to="/about" className="link link-hover">
+        <Link to="#" className="link link-hover">
           About Us
         </Link>
-        <Link to="/contact" className="link link-hover">
+        <Link to="#" className="link link-hover">
           Contact
         </Link>
       </div>
@@ -49,11 +49,11 @@ const Footer = () => {
         <div className="flex items-center gap-2">
           <EnvelopeIcon className="h-5 w-5 text-gray-400" />
 
-          <span>info@YC-informatique.com</span>
+          <span>ycinfo2026@gmail.com</span>
         </div>
         <div className="flex items-center gap-2">
           <PhoneIcon className="h-5 w-5 text-gray-400" />
-          <span>+079999999</span>
+          <span>+0791781303</span>
         </div>
         <div className="flex items-start gap-2">
           {/* Changed LocationMarkerIcon to MapPinIcon */}

@@ -69,7 +69,7 @@ const Navbar = () => {
     // .setSearchParams({ ...params, category: newCategory === 'All Categories' ? '' : newCategory });
   };
 
-  let phoneNumber = "+079999999";
+  let phoneNumber = "+0791781303";
   let address = "TAHER, Jijel, Algeria";
   let currency = "DZD";
   // Determine the account link destination based on auth state
@@ -110,21 +110,18 @@ const Navbar = () => {
       <div className="bg-base-300 text-base-content text-sm py-1 px-4 flex justify-between items-center hidden md:flex">
         {/* Changed bg-gray-900 to bg-base-300 */}
         <div className="flex items-center space-x-6">
-          <a
-            href="tel:+021-95-51-84"
-            className="flex items-center hover:text-primary transition"
-          >
+          <a className="flex items-center hover:text-primary transition">
             {/* Changed hover:text-white to hover:text-primary */}
             <PhoneIcon className="h-4 w-4 mr-1" />
             {phoneNumber}
           </a>
           <a
-            href="mailto:email@email.com"
+            href="mailto:ycinfo2026@gmail.com"
             className="flex items-center hover:text-primary transition"
           >
             {/* Changed hover:text-white to hover:text-primary */}
             <EnvelopeIcon className="h-4 w-4 mr-1" />
-            email@email.com
+            ycinfo2026@gmail.com
           </a>
           <span className="flex items-center">
             <MapPinIcon className="h-4 w-4 mr-1" />

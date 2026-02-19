@@ -283,8 +283,6 @@ const BuildPC = () => {
 
       useStore.getState().clearBuildPcComponents(); // Assuming you have a clear function in your store
 
-      // --- END NEW LINES ---
-
       // Navigate to the cart page after successful addition
       navigate("/cart"); // Uncomment if you have a navigate hook from react-router-dom
     } catch (error) {
